@@ -1,0 +1,227 @@
+version: '3.8'
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:latest
+    environment:
+      KEYCLOAK_ADMIN: keycloak_admin
+      KEYCLOAK_ADMIN_PASSWORD: JalanCipunagara25!
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak_db
+      KC_DB_USERNAME: keycloak_db_user
+      KC_DB_PASSWORD: JalanCipunagara25!
+    ports:
+      - "8080:8080"
+    command: start-dev
+    depends_on:
+      keycloak-postgres:
+        condition: service_healthy
+    networks:
+      - backend-network
+
+  keycloak-postgres:
+    image: postgres:17
+    container_name: keycloak-postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: keycloak_db_user
+      POSTGRES_PASSWORD: JalanCipunagara25!
+      POSTGRES_DB: keycloak_db
+    volumes:
+      - keycloak-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U keycloak_db_user -d keycloak_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  postgres:
+    image: postgres:17
+    container_name: postgres-db
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: JalanCipunagara25!
+      POSTGRES_DB: app_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d app_db" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  mongo:
+    image: mongo:6
+    container_name: mongo-db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - backend-network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: JalanCipunagara25!
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+      keycloak-postgres:
+        condition: service_healthy
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+    depends_on:
+      - mongo
+    networks:
+      - backend-network
+
+  kong-database:
+    image: postgres:17
+    container_name: kong-database
+    environment:
+      POSTGRES_USER: kong
+      POSTGRES_PASSWORD: JalanCipunagara25!
+      POSTGRES_DB: kong
+    volumes:
+      - kong-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U kong -d kong" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-network
+
+  kong-migrations:
+    image: kong:latest
+    container_name: kong-migrations
+    command: "kong migrations bootstrap"
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: JalanCipunagara25!
+      KONG_PG_DATABASE: kong
+    depends_on:
+      kong-database:
+        condition: service_healthy
+    networks:
+      - backend-network
+
+  kong:
+    image: kong:latest
+    container_name: kong
+    environment:
+      KONG_DATABASE: postgres
+      KONG_PG_HOST: kong-database
+      KONG_PG_USER: kong
+      KONG_PG_PASSWORD: JalanCipunagara25!
+      KONG_PG_DATABASE: kong
+      KONG_PROXY_ACCESS_LOG: /dev/stdout
+      KONG_ADMIN_ACCESS_LOG: /dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_ERROR_LOG: /dev/stderr
+      KONG_ADMIN_LISTEN: 0.0.0.0:8001
+      KONG_PROXY_LISTEN: 0.0.0.0:8000
+      KONG_ADMIN_GUI_LISTEN: 0.0.0.0:8002
+      KONG_ADMIN_GUI_URL: http://localhost:8002
+      KONG_ADMIN_GUI_PATH: /
+    ports:
+      - "8000:8000" # Proxy
+      - "8001:8001" # Admin API
+      - "8002:8002" # Kong Manager (GUI)
+    depends_on:
+      kong-database:
+        condition: service_healthy
+      kong-migrations:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [ "CMD", "kong", "health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - backend-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: bantal-backend
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      # Database connections (notice the container names instead of localhost)
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=JalanCipunagara25!
+      - DB_DATABASE=bantal_db
+      # MongoDB
+      - MONGODB_URI=mongodb://mongo:27017
+      - MONGODB_DATABASE=bantal_db
+      # Keycloak
+      - KEYCLOAK_HOST=keycloak
+      - KEYCLOAK_PORT=8080
+      # Other env variables as needed
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+volumes:
+  keycloak-postgres-data:
+    driver: local
+  postgres-data:
+    driver: local
+  mongo-data:
+    driver: local
+  pgadmin-data:
+    driver: local
+  kong-postgres-data:
+    driver: local
+
+networks:
+  backend-network:
+    driver: bridge
