@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import envConfig from './config/env.config';
 import { DocumentModule } from './modules/document/document.module';
 import { databaseConfig } from '@config/database.config';
+import { HealthModule } from '@modules/health/health.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { databaseConfig } from '@config/database.config';
     MongooseModule.forRoot('mongodb://mongo:27017'),
     AuthModule,
     DocumentModule,
+    HealthModule
   ],
   controllers: [AppController],
   providers: [AppService],

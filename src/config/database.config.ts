@@ -5,10 +5,10 @@ import { Client } from 'pg'; // Add this import
 async function ensureSchema() {
   const client = new Client({
     host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5434', 10),
+    port: parseInt(process.env.DB_PORT || '5432', 10),
     user: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'JalanCipunagara25!',
-    database: 'postgres',
+    database: process.env.DB_DATABASE || 'bantal_db',
   });
 
   try {
@@ -26,10 +26,10 @@ async function ensureSchema() {
 export const databaseConfig: DataSourceOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5434', 10),
+  port: parseInt(process.env.DB_PORT || '5432', 10),
   username: process.env.DB_USERNAME || 'postgres',
   password: process.env.DB_PASSWORD || 'JalanCipunagara25!',
-  database: 'postgres',
+  database: process.env.DB_DATABASE || 'bantal_db',
   entities: ['dist/**/*.entity{.ts,.js}'],
   migrations: ['dist/migrations/*.js'],
   migrationsRun: true,

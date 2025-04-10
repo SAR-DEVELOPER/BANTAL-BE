@@ -1,103 +1,73 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  RefreshTokenDto,
-  RefreshTokenResponseDto,
-} from './dto/refresh-token.dto';
+import axios from 'axios';
 import { TokenResponse } from './interfaces/token-response.interface';
 
 @Injectable()
 export class AuthService {
   constructor(private readonly configService: ConfigService) {}
 
-  async refreshToken(
-    refreshTokenDto: RefreshTokenDto,
-  ): Promise<RefreshTokenResponseDto> {
+
+  async exchangeCodeForTokens(code: string): Promise<TokenResponse> {
+    const tokenEndpoint = this.configService.get<string>('KEYCLOAK_TOKEN_ENDPOINT') as string;
+    const clientId = this.configService.get<string>('KEYCLOAK_CLIENT_ID') as string;
+    const clientSecret = this.configService.get<string>('KEYCLOAK_CLIENT_SECRET') as string;
+    const redirectUri = this.configService.get<string>('KEYCLOAK_REDIRECT_URI') as string;
+  
+    const body = new URLSearchParams({
+      grant_type: 'authorization_code',
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+    });
+  
+    const { data } = await axios.post(tokenEndpoint, body.toString(), {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    });
+  
+    return data as TokenResponse;
+
+  }
+
+  /**
+   * Uses the refresh token to get a new access token from Keycloak.
+   */
+  async refreshTokens(refreshToken: string): Promise<TokenResponse> {
+    const keycloakTokenEndpoint = this.configService.get<string>('KEYCLOAK_TOKEN_ENDPOINT');
+    const clientId = this.configService.get<string>('KEYCLOAK_CLIENT_ID');
+    const clientSecret = this.configService.get<string>('KEYCLOAK_CLIENT_SECRET');
+
+    if (!keycloakTokenEndpoint || !clientId || !clientSecret) {
+      throw new InternalServerErrorException('Missing required Keycloak configuration');
+    }
+
+    const form = new URLSearchParams();
+    form.append('grant_type', 'refresh_token');
+    form.append('refresh_token', refreshToken);
+    form.append('client_id', clientId);
+    form.append('client_secret', clientSecret);
+
     try {
-      // Decode and examine the token first
-      console.log('Examining refresh token:');
-      const decodedToken = this.decodeToken(refreshTokenDto.refresh_token);
-      const keycloakHost =
-        this.configService.get<string>('KEYCLOAK_HOST') || 'keycloak';
-      const keycloakPort =
-        this.configService.get<string>('KEYCLOAK_PORT') || '8080';
-      const keycloakUrl = `http://${keycloakHost}:${keycloakPort}`;
-
-      const realm = this.configService.get<string>('KEYCLOAK_REALM') || '';
-      const clientId =
-        this.configService.get<string>('KEYCLOAK_CLIENT_ID') || '';
-      const clientSecret = this.configService.get<string>(
-        'KEYCLOAK_CLIENT_SECRET',
-      );
-
-      console.log(`Keycloak URL: ${keycloakUrl}`);
-      console.log(`Realm: ${realm}`);
-      console.log(`Client ID: ${clientId}`);
-      console.log(`Has Client Secret: ${!!clientSecret}`);
-
-      const tokenEndpoint = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/token`;
-      console.log(`Token endpoint: ${tokenEndpoint}`);
-
-      // Prepare request parameters
-      const params = new URLSearchParams();
-      params.append('grant_type', 'refresh_token');
-      params.append('refresh_token', refreshTokenDto.refresh_token);
-
-      console.log(
-        `Refresh token length: ${refreshTokenDto.refresh_token.length}`,
-      );
-      console.log('Sending token refresh request...');
-
-      // Make the request with Basic Auth header for client authentication
-      const response = await fetch(tokenEndpoint, {
-        method: 'POST',
+      const { data } = await axios.post(keycloakTokenEndpoint, form.toString(), {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
-          Authorization:
-            'Basic ' +
-            Buffer.from(`${clientId}:${clientSecret}`).toString('base64'),
         },
-        body: params.toString(),
       });
-
-      console.log(`Keycloak response status: ${response.status}`);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.log(`Error response: ${errorText}`);
-        let errorData;
-        try {
-          errorData = JSON.parse(errorText);
-        } catch (e) {
-          errorData = { error_description: errorText };
-        }
-        throw new HttpException(
-          errorData.error_description || 'Failed to refresh token',
-          response.status,
-        );
-      }
-
-      const data: TokenResponse = await response.json();
-      console.log('Token refreshed successfully');
 
       return {
         access_token: data.access_token,
         refresh_token: data.refresh_token,
         expires_in: data.expires_in,
+        refresh_expires_in: data.refresh_expires_in,
+        token_type: data.token_type,
+        not_before_policy: data.not_before_policy,
+        session_state: data.session_state,
+        scope: data.scope,
       };
     } catch (error) {
-      console.error('Error in refreshToken:', error);
-
-      // If error is already an HttpException, rethrow it
-      if (error instanceof HttpException) {
-        throw error;
-      }
-
-      // Generic error case
-      throw new HttpException(
-        'Failed to refresh token',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      console.error('Failed to refresh tokens from Keycloak:', error?.response?.data || error.message);
+      throw new InternalServerErrorException('Token refresh request to Keycloak failed');
     }
   }
 
@@ -172,34 +142,6 @@ export class AuthService {
         error: 'Failed to get login information',
         message: error.message,
       };
-    }
-  }
-
-  // Add this function to your AuthService
-  private decodeToken(token: string) {
-    try {
-      // Split the token into parts
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        console.log('Not a valid JWT token structure');
-        return null;
-      }
-
-      // Base64 decode and parse the payload part (second part)
-      const payload = Buffer.from(parts[1], 'base64').toString();
-      const parsed = JSON.parse(payload);
-
-      console.log('Token decoded successfully:');
-      console.log('Issuer:', parsed.iss);
-      console.log('Subject:', parsed.sub);
-      console.log('Audience:', parsed.aud);
-      console.log('Expires at:', new Date(parsed.exp * 1000).toISOString());
-      console.log('Issued at:', new Date(parsed.iat * 1000).toISOString());
-
-      return parsed;
-    } catch (error) {
-      console.error('Error decoding token:', error);
-      return null;
     }
   }
 }
