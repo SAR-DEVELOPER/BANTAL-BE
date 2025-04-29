@@ -2,4 +2,3 @@
 export * from './base.entity';
 export * from './document-type.entity';
 export * from './master-document-list.entity';
-export * from './document-info.entity';

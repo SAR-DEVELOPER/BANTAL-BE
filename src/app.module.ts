@@ -3,12 +3,16 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MongooseModule } from '@nestjs/mongoose';
 import { AuthModule } from './modules/auth/auth.module';
 import envConfig from './config/env.config';
 import { DocumentModule } from './modules/document/document.module';
 import { databaseConfig } from '@config/database.config';
 import { HealthModule } from '@modules/health/health.module';
+import { DivisionModule } from './modules/division/division.module';
+import { CompanyModule } from './modules/company/company.module';
+import { IdentityModule } from './modules/identity/identity.module';
+import { MongoDBModule } from './modules/mongodb/mongodb.module';
+import { DevModule } from './modules/dev/dev.module';
 
 @Module({
   imports: [
@@ -17,10 +21,14 @@ import { HealthModule } from '@modules/health/health.module';
       isGlobal: true,
     }),
     TypeOrmModule.forRoot(databaseConfig),
-    MongooseModule.forRoot('mongodb://mongo:27017'),
+    MongoDBModule,
     AuthModule,
     DocumentModule,
-    HealthModule
+    DivisionModule,
+    CompanyModule,
+    IdentityModule,
+    HealthModule,
+    DevModule,
   ],
   controllers: [AppController],
   providers: [AppService],

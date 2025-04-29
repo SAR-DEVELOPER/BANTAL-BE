@@ -108,14 +108,6 @@ export class AuthController {
     }
   }
 
-  @Get("health")
-  async health() {
-    return {
-      status: "ok",
-      message: "Auth service is healthy",
-    }
-  }
-
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@Req() req: Request) {
@@ -124,5 +116,35 @@ export class AuthController {
       name: req.user?.name,
       username: req.user?.preferred_username,
     };
+  }
+
+  @Get("logout")
+  logout(@Res() res: Response) {
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none' as const,
+      domain: '.will-soon.com',
+      path: '/',
+    };
+
+    // 1. Clear cookies
+    res.clearCookie('auth_session', cookieOptions);
+    res.clearCookie('refresh_token', cookieOptions);
+
+    // 2. Optional: redirect to Keycloak logout endpoint
+    const keycloakBaseUrl = this.configService.get('KEYCLOAK_URL'); // e.g., https://www.process.will-soon.com:8080
+    const realm = this.configService.get('KEYCLOAK_REALM');
+    const logoutUrl = `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://www.will-soon.com/')}`;
+    return res.redirect(logoutUrl);
+
+  }
+
+  @Get("health")
+  async health() {
+    return {
+      status: "ok",
+      message: "Auth service is healthy",
+    }
   }
 }
