@@ -20,6 +20,8 @@ import { Identity } from '@modules/identity/core/entities/identity.entity';
 import { MasterDivisionList } from 'src/entities/master-division-list.entity';
 import { MasterCompanyList } from 'src/entities/master-company-list.entity';
 import { MongoDBModule } from '../mongodb/mongodb.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { DocumentSchema } from '../mongodb/schemas/document.schema';
 
 @Module({
   imports: [
@@ -31,6 +33,9 @@ import { MongoDBModule } from '../mongodb/mongodb.module';
       MasterCompanyList
     ]),
     MongoDBModule,
+    MongooseModule.forFeature([
+      { name: 'Document', schema: DocumentSchema }
+    ]),
   ],
   providers: [
     DocumentService,

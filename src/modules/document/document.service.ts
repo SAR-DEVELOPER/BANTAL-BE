@@ -8,6 +8,17 @@ import { DocumentListDto } from './core/dto/document-list.dto';
 import { Identity } from '@modules/identity/core/entities/identity.entity';
 import { MasterDivisionList } from 'src/entities/master-division-list.entity';
 import { MasterCompanyList } from 'src/entities/master-company-list.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+interface MongoDocument {
+  versions: Array<{
+    versionNumber: number;
+    content: Buffer;
+    mimeType: string;
+    uploadedAt: Date;
+  }>;
+}
 
 @Injectable()
 export class DocumentService {
@@ -25,7 +36,10 @@ export class DocumentService {
     private masterDivisionListRepository: Repository<MasterDivisionList>,
     
     @InjectRepository(MasterCompanyList)
-    private masterCompanyListRepository: Repository<MasterCompanyList>
+    private masterCompanyListRepository: Repository<MasterCompanyList>,
+    
+    @InjectModel('Document')
+    private readonly documentModel: Model<MongoDocument>
   ) {}
 
   getHello(): any {
@@ -150,15 +164,32 @@ export class DocumentService {
     const { 
       createdById, 
       masterDivisionListId, 
-      masterCompanyListId, 
+      masterCompanyListId,
+      file,
       ...documentFields 
     } = documentData;
+
+    // Save file to MongoDB if provided
+    let mongoDocumentId: string | null = null;
+    if (file) {
+      const mongoDoc = new this.documentModel({
+        versions: [{
+          versionNumber: 1,
+          content: file.buffer,
+          mimeType: file.mimetype,
+          uploadedAt: new Date(),
+        }],
+      });
+      const savedDoc = await mongoDoc.save();
+      mongoDocumentId = savedDoc._id.toString();
+    }
 
     // Create the document entity with explicit property assignment
     const newDocument = new MasterDocumentList();
     Object.assign(newDocument, {
       ...documentFields,
-      documentStatus: DocumentStatus.DRAFT
+      documentStatus: DocumentStatus.DRAFT,
+      mongoDocumentId
     });
     
     // Set the document type (required)
@@ -205,9 +236,10 @@ export class DocumentService {
    * @param shortHand The short hand of the document type
    * @param month Optional month (1-12) to filter by
    * @param year Optional year to filter by
+   * @param companyId Optional company ID to filter by
    * @returns Latest index number for the document type
    */
-  async getLatestIndexNumber(shortHand: string, month?: number, year?: number): Promise<number> {
+  async getLatestIndexNumber(shortHand: string, month?: number, year?: number, companyId?: string): Promise<number> {
     // Find the document type by shortHand
     const documentType = await this.documentTypeRepository.findOne({
       where: { shortHand }
@@ -235,6 +267,11 @@ export class DocumentService {
     // Add year filter if provided
     if (year !== undefined) {
       queryBuilder.andWhere('EXTRACT(YEAR FROM document.created_at) = :year', { year });
+    }
+
+    // Add company filter if provided
+    if (companyId !== undefined) {
+      queryBuilder.andWhere('document.master_company_list_id = :companyId', { companyId });
     }
 
     // Get the document with the highest index number

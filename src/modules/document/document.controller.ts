@@ -51,6 +51,7 @@ export class DocumentController {
    * @param shortHand The short hand of the document type
    * @param month Optional month (1-12) to filter by
    * @param year Optional year to filter by
+   * @param companyId Optional company ID to filter by
    * @returns Latest index number for the document type
    */
   @Get('latest-index-number/:shortHand')
@@ -58,11 +59,12 @@ export class DocumentController {
     @Param('shortHand') shortHand: string,
     @Query('month') month?: string,
     @Query('year') year?: string,
+    @Query('companyId') companyId?: string,
   ): Promise<number> {
     const monthValue = month ? parseInt(month, 10) : undefined;
     const yearValue = year ? parseInt(year, 10) : undefined;
     
-    return this.documentService.getLatestIndexNumber(shortHand, monthValue, yearValue);
+    return this.documentService.getLatestIndexNumber(shortHand, monthValue, yearValue, companyId);
   }
 
   /**

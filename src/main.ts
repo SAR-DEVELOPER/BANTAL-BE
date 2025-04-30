@@ -20,7 +20,6 @@ async function bootstrap() {
     origin: ['https://will-soon.com', 'https://www.will-soon.com'],
     credentials: true,
   });
-  
 
   const port = process.env.PORT ?? 4000;
   await app.listen(port, '0.0.0.0');

@@ -49,8 +49,7 @@ export class MasterDocumentList extends BaseEntity {
   documentNumber: string;
 
   @Column({
-    name: 'document_external_number',
-    unique: true,
+    name: 'document_external_number'
   })
   documentExternalNumber: string;
 
@@ -94,9 +93,6 @@ export class MasterDocumentList extends BaseEntity {
   })
   documentStatus: DocumentStatus;
 
-  @Column({
-    name: 'mongo_document_id',
-    type: 'uuid',
-  })
+  @Column({ name: 'mongo_document_id', type: 'varchar', nullable: true })
   mongoDocumentId: string;
 }

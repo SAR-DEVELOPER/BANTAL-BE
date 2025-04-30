@@ -14,12 +14,14 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { KeycloakUrlHelper } from './keycloak-url.helper';
 
 @Controller('auth')
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly keycloakUrlHelper: KeycloakUrlHelper,
   ) { }
 
   @Get('callback')
@@ -133,11 +135,10 @@ export class AuthController {
     res.clearCookie('refresh_token', cookieOptions);
 
     // 2. Optional: redirect to Keycloak logout endpoint
-    const keycloakBaseUrl = this.configService.get('KEYCLOAK_URL'); // e.g., https://www.process.will-soon.com:8080
-    const realm = this.configService.get('KEYCLOAK_REALM');
-    const logoutUrl = `${keycloakBaseUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://www.will-soon.com/')}`;
+    const keycloakUrl = this.keycloakUrlHelper.getKeycloakUrl();
+    const realm = this.keycloakUrlHelper.getKeycloakRealm();
+    const logoutUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://www.will-soon.com/')}`;
     return res.redirect(logoutUrl);
-
   }
 
   @Get("health")
@@ -146,5 +147,22 @@ export class AuthController {
       status: "ok",
       message: "Auth service is healthy",
     }
+  }
+
+  /**
+   * Get Keycloak environment configuration (for debugging)
+   * @returns Current Keycloak environment settings
+   */
+  @Get('keycloak-config')
+  getKeycloakConfig() {
+    return {
+      url: this.keycloakUrlHelper.getKeycloakUrl(),
+      realm: this.keycloakUrlHelper.getKeycloakRealm(),
+      host: this.configService.get<string>('KEYCLOAK_HOST'),
+      port: this.configService.get<string>('KEYCLOAK_PORT'),
+      directUrl: this.configService.get<string>('KEYCLOAK_URL'),
+      clientId: this.configService.get<string>('KEYCLOAK_CLIENT_ID'),
+      clientSecretSet: !!this.configService.get<string>('KEYCLOAK_CLIENT_SECRET'),
+    };
   }
 }
