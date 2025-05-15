@@ -1,4 +1,4 @@
-import { Controller, Get, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, Post } from '@nestjs/common';
 import { IdentityService } from './identity.service';
 import { Identity } from './core/entities/identity.entity';
 
@@ -31,5 +31,13 @@ export class IdentityController {
       }
       throw new NotFoundException(`Identity with ID "${id}" not found`);
     }
+  }
+
+  /**
+   * Import Microsoft users into the identity table
+   */
+  @Post('import-microsoft-users')
+  async importMicrosoftUsers() {
+    return this.identityService.importMicrosoftUsers();
   }
 }

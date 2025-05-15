@@ -8,7 +8,7 @@ import { UserIdentity } from '../interfaces/user-identity.interface';
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   private jwksClient = jwksRsa({
-    jwksUri: 'https://www.process.will-soon.com/realms/BANTAL/protocol/openid-connect/certs',
+    jwksUri: 'https://auth.process.will-soon.com/realms/BANTAL/protocol/openid-connect/certs',
     cache: true,
     rateLimit: true,
   });

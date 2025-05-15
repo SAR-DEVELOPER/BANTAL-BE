@@ -24,4 +24,21 @@ export class DevController {
       };
     }
   }
+
+  @Get('microsoft_users')
+  async getMicrosoftUsers() {
+    try {
+      const users = await this.devService.getMicrosoftUsers();
+      return {
+        status: 'success',
+        users,
+      };
+    } catch (error) {
+      return {
+        status: 'error',
+        message: 'Failed to fetch Microsoft users',
+        error: error.message,
+      };
+    }
+  }
 } 

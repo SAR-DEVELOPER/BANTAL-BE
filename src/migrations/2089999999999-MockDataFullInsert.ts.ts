@@ -3,15 +3,6 @@ import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class MockDataFullInsert2099999999999 implements MigrationInterface {
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Insert into identity
-        await queryRunner.query(`
-            INSERT INTO "identity" (id, keycloak_id, email, name, preferred_username, created_at, updated_at)
-            VALUES 
-            (uuid_generate_v4(), uuid_generate_v4(), 'user@example.com', 'John Doe', 'johndoe', now(), now()),
-            (uuid_generate_v4(), uuid_generate_v4(), 'user2@example.com', 'Jane Smith', 'janesmith', now(), now()),
-            (uuid_generate_v4(), uuid_generate_v4(), 'user3@example.com', 'Alice Johnson', 'alicejohnson', now(), now());
-        `);
-
         // Insert into master_company_list
         await queryRunner.query(`
             INSERT INTO "master_company_list" (id, company_code, company_name, address, phone_number, email, description, is_active, created_by, created_at, updated_at)

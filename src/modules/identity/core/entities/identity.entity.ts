@@ -11,20 +11,30 @@ import { Role } from '../enums/role.enum';
 @Entity('identity')
 export class Identity {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
-  id: string;
+  id: string; // Internal primary key
 
-  @Column({ type: 'uuid', name: 'keycloak_id', unique: true })
+  @Column({ type: 'varchar', length: 255, name: 'external_id', unique: true })
   @Index()
-  keycloakId: string;
+  externalId: string; // Entra ID Object ID (Microsoft Graph)
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  email: string;
+  @Column({ type: 'varchar', length: 255, name: 'keycloak_id', nullable: true, unique: true })
+  @Index()
+  keycloakId: string; // Keycloak internal UUID (from token 'sub')
 
-  @Column({ type: 'varchar', length: 255, nullable: true })
-  name: string;
+  @Column({ type: 'varchar', length: 255, nullable: false, unique: true })
+  email: string; // Must match Entra ID mail or userPrincipalName
+
+  @Column({ type: 'varchar', length: 255, nullable: false })
+  name: string; // Display name (from Entra)
+
+  @Column({ type: 'varchar', length: 255, name: 'department', nullable: true })
+  department: string;
+
+  @Column({ type: 'varchar', length: 255, name: 'job_title', nullable: true })
+  jobTitle: string;
 
   @Column({ type: 'varchar', length: 255, name: 'preferred_username', nullable: true })
-  preferredUsername: string;
+  preferredUsername: string; // Optional: Could store UPN or any custom username
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -40,10 +50,18 @@ export class Identity {
   isActive: boolean;
 
   @Column({
+    name: 'status',
+    type: 'enum',
+    enum: ['active', 'inactive', 'pending'],
+    default: 'active',
+  })
+  status: 'active' | 'inactive' | 'pending';
+
+  @Column({
     name: 'role',
     type: 'enum',
     enum: Role,
     default: Role.USER,
   })
   role: Role;
-} 
+}

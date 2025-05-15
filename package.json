@@ -21,7 +21,9 @@
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "migration:generate": "npm run typeorm -- migration:generate -d typeorm.config.ts",
     "migration:run": "npm run typeorm -- migration:run -d typeorm.config.ts",
-    "migration:revert": "npm run typeorm -- migration:revert -d typeorm.config.ts"
+    "migration:revert": "npm run typeorm -- migration:revert -d typeorm.config.ts",
+    "migration:purge": "npm run typeorm -- migration:revert -d typeorm.config.ts --all",
+    "migration:purge-and-run": "npm run migration:purge && npm run migration:run"
   },
   "dependencies": {
     "@keycloak/keycloak-admin-client": "^26.1.0",
