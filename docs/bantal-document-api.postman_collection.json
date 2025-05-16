@@ -1,0 +1,370 @@
+{
+	"info": {
+		"_postman_id": "1f2a3b4c-5d6e-7f8g-9h0i-1j2k3l4m5n6o",
+		"name": "BANTAL Document API",
+		"description": "Collection for testing BANTAL document creation and management API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Document Creation",
+			"item": [
+				{
+					"name": "Create SuratPenawaran (Pwn)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "documentNumber",
+									"value": "Pwn/2024/001",
+									"type": "text"
+								},
+								{
+									"key": "documentExternalNumber",
+									"value": "EXT/Pwn/2024/001",
+									"type": "text"
+								},
+								{
+									"key": "documentName",
+									"value": "Sample Penawaran Document",
+									"type": "text"
+								},
+								{
+									"key": "documentLegalDate",
+									"value": "2024-05-15",
+									"type": "text"
+								},
+								{
+									"key": "indexNumber",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "createdById",
+									"value": "bf88d652-b6af-4a38-a512-bebfb297cce7",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "masterDivisionListId",
+									"value": "f759e3fe-4799-4578-b233-3c09658ae96c",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "masterCompanyListId",
+									"value": "f855dfca-a1c3-42c9-a55e-22d5fe0b8094",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "clientId",
+									"value": "00000000-0000-0000-0000-000000000002",
+									"description": "Replace with valid client ID",
+									"type": "text"
+								},
+								{
+									"key": "documentDescription",
+									"value": "This is a sample description for the Penawaran document",
+									"type": "text"
+								},
+								{
+									"key": "offeredService",
+									"value": "Web Application Development",
+									"type": "text"
+								},
+								{
+									"key": "personInChargeId",
+									"value": "bf88d652-b6af-4a38-a512-bebfb297cce7",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/path/to/sample-document.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/documents/create/Pwn",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents",
+								"create",
+								"Pwn"
+							]
+						},
+						"description": "Create a Surat Penawaran document with form data"
+					},
+					"response": []
+				},
+				{
+					"name": "Create SuratPenawaran (Pwn) - JSON",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"baseDocument\": {\n    \"documentNumber\": \"Pwn/2024/002\",\n    \"documentExternalNumber\": \"EXT/Pwn/2024/002\",\n    \"documentName\": \"JSON Penawaran Document\",\n    \"documentLegalDate\": \"2024-05-15\",\n    \"indexNumber\": 2,\n    \"createdById\": \"bf88d652-b6af-4a38-a512-bebfb297cce7\",\n    \"masterDivisionListId\": \"f759e3fe-4799-4578-b233-3c09658ae96c\",\n    \"masterCompanyListId\": \"f855dfca-a1c3-42c9-a55e-22d5fe0b8094\"\n  },\n  \"specificDocument\": {\n    \"clientId\": \"00000000-0000-0000-0000-000000000002\",\n    \"documentDescription\": \"This is a sample JSON description for the Penawaran document\",\n    \"offeredService\": \"Mobile Application Development\",\n    \"personInChargeId\": \"bf88d652-b6af-4a38-a512-bebfb297cce7\"\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/documents/create/Pwn",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents",
+								"create",
+								"Pwn"
+							]
+						},
+						"description": "Create a Surat Penawaran document with JSON data"
+					},
+					"response": []
+				},
+				{
+					"name": "Create SuratPerjanjianKerja (SPK)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "documentNumber",
+									"value": "SPK/2024/001",
+									"type": "text"
+								},
+								{
+									"key": "documentExternalNumber",
+									"value": "EXT/SPK/2024/001",
+									"type": "text"
+								},
+								{
+									"key": "documentName",
+									"value": "Sample Perjanjian Kerja Document",
+									"type": "text"
+								},
+								{
+									"key": "documentLegalDate",
+									"value": "2024-05-16",
+									"type": "text"
+								},
+								{
+									"key": "indexNumber",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "createdById",
+									"value": "bf88d652-b6af-4a38-a512-bebfb297cce7",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "masterDivisionListId",
+									"value": "f759e3fe-4799-4578-b233-3c09658ae96c",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "masterCompanyListId",
+									"value": "f855dfca-a1c3-42c9-a55e-22d5fe0b8094",
+									"description": "Replace with valid UUID",
+									"type": "text"
+								},
+								{
+									"key": "clientId",
+									"value": "00000000-0000-0000-0000-000000000003",
+									"description": "Replace with valid client ID",
+									"type": "text"
+								},
+								{
+									"key": "documentDescription",
+									"value": "This is a sample description for the Perjanjian Kerja document",
+									"type": "text"
+								},
+								{
+									"key": "startDate",
+									"value": "2024-06-01",
+									"type": "text"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31",
+									"type": "text"
+								},
+								{
+									"key": "projectFee",
+									"value": "50000000",
+									"type": "text"
+								},
+								{
+									"key": "paymentInstallment",
+									"value": "3",
+									"type": "text"
+								},
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/path/to/sample-document.pdf"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/documents/create/SPK",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents",
+								"create",
+								"SPK"
+							]
+						},
+						"description": "Create a Surat Perjanjian Kerja document with form data"
+					},
+					"response": []
+				},
+				{
+					"name": "Create SuratPerjanjianKerja (SPK) - JSON",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"baseDocument\": {\n    \"documentNumber\": \"SPK/2024/002\",\n    \"documentExternalNumber\": \"EXT/SPK/2024/002\",\n    \"documentName\": \"JSON Perjanjian Kerja Document\",\n    \"documentLegalDate\": \"2024-05-16\",\n    \"indexNumber\": 2,\n    \"createdById\": \"bf88d652-b6af-4a38-a512-bebfb297cce7\",\n    \"masterDivisionListId\": \"f759e3fe-4799-4578-b233-3c09658ae96c\",\n    \"masterCompanyListId\": \"f855dfca-a1c3-42c9-a55e-22d5fe0b8094\"\n  },\n  \"specificDocument\": {\n    \"clientId\": \"00000000-0000-0000-0000-000000000003\",\n    \"documentDescription\": \"This is a sample JSON description for the Perjanjian Kerja document\",\n    \"startDate\": \"2024-06-15\",\n    \"endDate\": \"2025-06-14\",\n    \"projectFee\": 75000000,\n    \"paymentInstallment\": 6\n  }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/documents/create/SPK",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents",
+								"create",
+								"SPK"
+							]
+						},
+						"description": "Create a Surat Perjanjian Kerja document with JSON data"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for creating various document types"
+		},
+		{
+			"name": "Document Management",
+			"item": [
+				{
+					"name": "Get All Documents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/documents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents"
+							]
+						},
+						"description": "Retrieve a list of all documents"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Document By ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/documents/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"documents",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "550e8400-e29b-41d4-a716-446655440006",
+									"description": "Document UUID"
+								}
+							]
+						},
+						"description": "Retrieve a specific document by its ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Document Types",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/document-types",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"document-types"
+							]
+						},
+						"description": "Retrieve a list of all document types"
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing documents"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:3000",
+			"type": "string"
+		}
+	]
+} 

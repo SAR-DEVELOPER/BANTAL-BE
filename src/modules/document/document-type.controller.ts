@@ -7,7 +7,7 @@ export class DocumentTypeController {
   constructor(private readonly documentTypeService: DocumentTypeService) {}
 
   @Get()
-  async findAll() {
+  findAll() {
     return this.documentTypeService.findAll();
   }
 

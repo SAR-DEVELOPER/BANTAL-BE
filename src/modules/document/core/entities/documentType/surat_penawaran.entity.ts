@@ -25,13 +25,28 @@
  * system, allowing for version control and specialized fields for offering letters.
  */
 
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, JoinColumn, OneToOne, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { BaseVersionedDocument } from "../base-versioned-document.entity";
 import { Schemas } from "src/config/schema.config";
 import { MasterDocumentList } from "../master-document-list.entity";
 import { Identity } from "src/modules/identity/core/entities/identity.entity";
+
 @Entity('surat_penawaran', { schema: Schemas.DOCUMENT })
 export class SuratPenawaran extends BaseVersionedDocument {
+    @CreateDateColumn({
+        name: 'created_at',
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP'
+    })
+    createdAt: Date;
+
+    @UpdateDateColumn({
+        name: 'updated_at',
+        type: 'timestamp',
+        default: () => 'CURRENT_TIMESTAMP'
+    })
+    updatedAt: Date;
+
     // TODO: Change this to use a proper reference/relation to client entity in the future
     @Column({
         name: 'client_id', 
@@ -54,6 +69,13 @@ export class SuratPenawaran extends BaseVersionedDocument {
     @OneToOne(() => Identity)
     @JoinColumn({ name: 'person_in_charge' })
     personInCharge: Identity;
-    
-    
+
+    @Column({
+        name: 'person_in_charge',
+        type: 'uuid',
+        nullable: true,
+        insert: false,
+        update: false
+    })
+    personInChargeId: string;
 }

@@ -7,6 +7,7 @@ import {
     UpdateDateColumn,
     JoinColumn,
     BaseEntity,
+    Entity,
   } from 'typeorm';
   import { MasterDocumentList } from './master-document-list.entity';
   
@@ -14,9 +15,12 @@ import {
     @PrimaryGeneratedColumn('uuid')
     id: string;
   
-    @ManyToOne(() => MasterDocumentList)
+    @ManyToOne(() => MasterDocumentList, { nullable: false })
     @JoinColumn({ name: 'master_document_list_id' })
     masterDocument: MasterDocumentList;
+  
+    @Column({ name: 'master_document_list_id', type: 'uuid', nullable: false, insert: false, update: false })
+    masterDocumentId: string;
   
     @Column({ name: 'version_number', type: 'int' })
     versionNumber: number;
@@ -26,5 +30,11 @@ import {
   
     @Column({ name: 'uploaded_by', type: 'uuid' })
     uploadedBy: string;
+  
+    @CreateDateColumn({ name: 'created_at' })
+    createdAt: Date;
+  
+    @UpdateDateColumn({ name: 'updated_at' })
+    updatedAt: Date;
   }
   

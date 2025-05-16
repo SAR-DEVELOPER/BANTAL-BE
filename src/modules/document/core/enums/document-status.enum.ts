@@ -8,4 +8,5 @@ export enum DocumentStatus {
   EXPIRED = 'EXPIRED', // Document no longer valid
   CANCELLED = 'CANCELLED', // Document cancelled/voided
   REJECTED = 'REJECTED', // Document rejected in workflow
+  FINALIZED = 'FINALIZED', // Document has been finalized
 }
