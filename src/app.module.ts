@@ -13,6 +13,7 @@ import { CompanyModule } from './modules/company/company.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { MongoDBModule } from './modules/mongodb/mongodb.module';
 import { DevModule } from './modules/dev/dev.module';
+import { PekerjaanModule } from './modules/pekerjaan-NB/pekerjaan.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { DevModule } from './modules/dev/dev.module';
     IdentityModule,
     HealthModule,
     DevModule,
+    PekerjaanModule,
   ],
   controllers: [AppController],
   providers: [AppService],

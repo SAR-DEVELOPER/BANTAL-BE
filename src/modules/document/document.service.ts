@@ -10,7 +10,7 @@ import { MasterDivisionList } from 'src/entities/master-division-list.entity';
 import { MasterCompanyList } from 'src/entities/master-company-list.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { SuratPenawaran } from './core/entities/documentType/surat_penawaran.entity';
+import { SuratPenawaran } from './core/entities/documentType/surat-penawaran.entity';
 
 interface MongoDocument {
   versions: Array<{

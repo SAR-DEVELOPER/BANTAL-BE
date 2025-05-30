@@ -7,13 +7,14 @@ import {
 } from './core/entities';
 
 // Document type entities
-import { SuratPenawaran } from './core/entities/documentType/surat_penawaran.entity';
+import { SuratPenawaran } from './core/entities/documentType/surat-penawaran.entity';
 import { SuratPerjanjianKerja } from './core/entities/documentType/surat-perjanjian-kerja.entity';
 
 // Existing service and controller
 import { DocumentService } from './document.service';
 import { DocumentController } from './document.controller';
 import { CreateDocumentController } from './create-document.controller';
+import { FinalizeDocumentController } from './finalize-document.controller';
 
 // New services
 import { DocumentTypeService } from './document-type.service';
@@ -64,9 +65,10 @@ import { DebugController } from './debug.controller';
   ],
   controllers: [
     DocumentController,
-    CreateDocumentController,
     DocumentTypeController,
     DebugController,
+    CreateDocumentController,
+    FinalizeDocumentController
   ],
   exports: [
     DocumentService,

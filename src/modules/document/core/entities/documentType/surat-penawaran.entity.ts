@@ -66,7 +66,7 @@ export class SuratPenawaran extends BaseVersionedDocument {
     })
     offeredService: string;
 
-    @OneToOne(() => Identity)
+    @ManyToOne(() => Identity)
     @JoinColumn({ name: 'person_in_charge' })
     personInCharge: Identity;
 

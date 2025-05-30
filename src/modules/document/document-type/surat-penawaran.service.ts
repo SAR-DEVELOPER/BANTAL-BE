@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, QueryFailedError } from 'typeorm';
-import { SuratPenawaran } from '../core/entities/documentType/surat_penawaran.entity';
+import { Repository, QueryFailedError, Connection } from 'typeorm';
+import { SuratPenawaran } from '../core/entities/documentType/surat-penawaran.entity';
 import { MasterDocumentList } from '../core/entities/master-document-list.entity';
 import { SuratPenawaranDto } from '../core/dto/surat-penawaran.dto';
 import { Identity } from '@modules/identity/core/entities/identity.entity';
+import { DocumentStatus } from '../core/enums/document-status.enum';
 
 @Injectable()
 export class SuratPenawaranService {
@@ -13,15 +14,16 @@ export class SuratPenawaranService {
   constructor(
     @InjectRepository(SuratPenawaran)
     private suratPenawaranRepository: Repository<SuratPenawaran>,
+    @InjectRepository(MasterDocumentList)
+    private masterDocumentListRepository: Repository<MasterDocumentList>,
     @InjectRepository(Identity)
     private identityRepository: Repository<Identity>,
+    private connection: Connection,
   ) {
     // Log entity metadata on service initialization
-    const metadata = this.suratPenawaranRepository.metadata;
-    this.logger.log(`SuratPenawaran entity metadata initialized:`);
-    this.logger.log(`Table name: ${metadata.tableName}`);
-    this.logger.log(`Schema: ${metadata.schema}`);
-    this.logger.log(`Columns: ${metadata.columns.map(col => col.propertyName).join(', ')}`);
+    setTimeout(() => {
+      this.logEntityMetadata();
+    }, 1000);
   }
 
   /**
@@ -180,5 +182,81 @@ export class SuratPenawaranService {
     }
     
     this.logger.debug('All required fields are present');
+  }
+
+  /**
+   * Finalize a Surat Penawaran document
+   * @param id Document UUID
+   * @param finalizationSummary Summary of the finalization
+   * @param physicalDelivery Whether physical delivery is required
+   * @param mongoDocumentIds Optional MongoDB document IDs for attached files
+   * @returns Finalization result
+   */
+  async finalize(
+    id: string,
+    finalizationSummary: string,
+    physicalDelivery: boolean,
+    mongoDocumentIds: string[] = []
+  ): Promise<{ message: string }> {
+    this.logger.debug(`Finalizing Surat Penawaran document with ID ${id}`);
+
+    // Find the master document
+    const masterDocument = await this.suratPenawaranRepository.findOne({
+      where: { masterDocumentId: id },
+      relations: ['masterDocument', 'personInCharge'],
+    });
+
+    if (!masterDocument) {
+      throw new NotFoundException(`Surat Penawaran data for document with ID "${id}" not found`);
+    }
+
+    // Start a transaction for data consistency
+    const queryRunner = this.connection.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+
+    try {
+      // Update master document status
+      masterDocument.masterDocument.documentStatus = DocumentStatus.FINALIZED;
+      await queryRunner.manager.save(masterDocument.masterDocument);
+
+      // For SP, handle specific finalization logic
+      // Log the finalization details
+      this.logger.debug(`Finalization summary: ${finalizationSummary}`);
+      this.logger.debug(`Physical delivery: ${physicalDelivery}`);
+      if (mongoDocumentIds.length > 0) {
+        this.logger.debug(`Attached document IDs: ${mongoDocumentIds.join(', ')}`);
+      }
+
+      // SP-specific finalization logic goes here
+      // For example, sending notifications, updating related records, etc.
+      
+      // Log the successful finalization
+      this.logger.debug(`Surat Penawaran document ${id} finalized successfully`);
+
+      // Commit the transaction
+      await queryRunner.commitTransaction();
+
+      return {
+        message: 'Surat Penawaran document has been successfully finalized'
+      };
+    } catch (error) {
+      // Rollback transaction in case of error
+      await queryRunner.rollbackTransaction();
+      this.logger.error(`Error finalizing Surat Penawaran document: ${error.message}`);
+      throw error;
+    } finally {
+      // Release the query runner
+      await queryRunner.release();
+    }
+  }
+
+  private logEntityMetadata() {
+    // Log entity metadata on service initialization
+    const metadata = this.suratPenawaranRepository.metadata;
+    this.logger.log(`SuratPenawaran entity metadata initialized:`);
+    this.logger.log(`Table name: ${metadata.tableName}`);
+    this.logger.log(`Schema: ${metadata.schema}`);
+    this.logger.log(`Columns: ${metadata.columns.map(col => col.propertyName).join(', ')}`);
   }
 } 
