@@ -4,7 +4,6 @@ import { Identity } from './core/entities/identity.entity';
 import { IdentityService } from './identity.service';
 import { IdentityController } from './identity.controller';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
@@ -12,7 +11,6 @@ import { AuthModule } from '../auth/auth.module';
       Identity
     ]),
     ConfigModule,
-    AuthModule,
   ],
   providers: [
     IdentityService,

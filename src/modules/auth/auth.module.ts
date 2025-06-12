@@ -6,6 +6,8 @@ import { JwtModule } from '@nestjs/jwt';
 import { KeycloakController } from './keycloak.controller';
 import { KeycloakDirectController } from './keycloak-direct.controller';
 import { KeycloakUrlHelper } from './keycloak-url.helper';
+import { EnhancedJwtAuthGuard } from './guards/enhanced-jwt-auth.guard';
+import { IdentityModule } from '../identity/identity.module';
 
 // Custom provider to set up the token endpoint URL
 const tokenEndpointProvider: Provider = {
@@ -36,6 +38,7 @@ const tokenEndpointProvider: Provider = {
 
 @Module({
   imports: [
+    IdentityModule,
     // ConfigModule is already imported via JwtModule.registerAsync
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -48,8 +51,8 @@ const tokenEndpointProvider: Provider = {
       inject: [ConfigService],
     }),
   ],
-  providers: [AuthService, KeycloakUrlHelper, tokenEndpointProvider],
+  providers: [AuthService, KeycloakUrlHelper, tokenEndpointProvider, EnhancedJwtAuthGuard],
   controllers: [AuthController, KeycloakController, KeycloakDirectController],
-  exports: [AuthService, KeycloakUrlHelper],
+  exports: [AuthService, KeycloakUrlHelper, EnhancedJwtAuthGuard],
 })
 export class AuthModule {}

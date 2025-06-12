@@ -15,9 +15,5 @@ export class CreatePekerjaanDto {
 
   @IsOptional()
   @IsObject()
-  workMilestone?: Record<string, any>;
-
-  @IsOptional()
-  @IsObject()
   paymentStructure?: Record<string, any>;
 } 

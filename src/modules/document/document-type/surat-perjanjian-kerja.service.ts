@@ -5,6 +5,7 @@ import { SuratPerjanjianKerja } from '../core/entities/documentType/surat-perjan
 import { MasterDocumentList } from '../core/entities/master-document-list.entity';
 import { SuratPerjanjianKerjaDto } from '../core/dto/surat-perjanjian-kerja.dto';
 import { DocumentStatus } from '../core/enums/document-status.enum';
+import { PekerjaanService } from '../../pekerjaan-NB/pekerjaan.service';
 
 @Injectable()
 export class SuratPerjanjianKerjaService {
@@ -15,7 +16,8 @@ export class SuratPerjanjianKerjaService {
     private suratPerjanjianKerjaRepository: Repository<SuratPerjanjianKerja>,
     @InjectRepository(MasterDocumentList)
     private masterDocumentListRepository: Repository<MasterDocumentList>,
-    private connection: Connection
+    private connection: Connection,
+    private readonly pekerjaanService: PekerjaanService,
   ) {}
 
   /**
@@ -215,12 +217,33 @@ export class SuratPerjanjianKerjaService {
         this.logger.debug(`Attached document IDs: ${mongoDocumentIds.join(', ')}`);
       }
 
-      // Trigger create pekerjaan service
-      // This is where you would call your pekerjaan service
-      this.logger.debug('Triggering create pekerjaan service');
+      // Determine if this is monthly (bulanan) or non-monthly work
+      // For now, this is set to false but will later be baked into the database
+      const isBulanan = false; // TODO: This should come from the database/document configuration
       
-      // Example: Call an external service to create pekerjaan
-      // await this.pekerjaanService.createFromSPK(spk, document);
+      this.logger.debug(`Creating pekerjaan for SPK ${id} - Type: ${isBulanan ? 'Monthly (Bulanan)' : 'Non-Monthly (Non-Bulanan)'}`);
+
+      // Create pekerjaan based on type
+      let createdPekerjaan;
+      try {
+        if (isBulanan) {
+          // Call monthly work creation service
+          // TODO: Implement pekerjaan-B service for monthly work
+          this.logger.debug('Creating monthly pekerjaan (pekerjaan-B) - service not yet implemented');
+          // createdPekerjaan = await this.pekerjaanBulananService.createMonthlyWork(document.documentName, spk.id);
+          
+          // For now, use the existing service with a flag
+          createdPekerjaan = await this.pekerjaanService.createMonthlyWork(document.documentName, spk.id);
+        } else {
+          // Call non-monthly work creation service
+          createdPekerjaan = await this.pekerjaanService.createNonMonthlyWork(document.documentName, spk.id);
+        }
+        
+        this.logger.debug(`Successfully created pekerjaan with ID: ${createdPekerjaan.id}`);
+      } catch (pekerjaanError) {
+        this.logger.error(`Failed to create pekerjaan: ${pekerjaanError.message}`);
+        throw new BadRequestException(`Failed to create pekerjaan: ${pekerjaanError.message}`);
+      }
       
       // Log the successful finalization
       this.logger.debug(`SPK document ${id} finalized successfully`);
@@ -229,7 +252,7 @@ export class SuratPerjanjianKerjaService {
       await queryRunner.commitTransaction();
 
       return {
-        message: 'SPK document has been successfully finalized and pekerjaan creation has been triggered'
+        message: `SPK document has been successfully finalized and ${isBulanan ? 'monthly' : 'non-monthly'} pekerjaan (ID: ${createdPekerjaan.id}) has been created`
       };
     } catch (error) {
       // Rollback transaction in case of error

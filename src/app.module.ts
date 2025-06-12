@@ -14,6 +14,7 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { MongoDBModule } from './modules/mongodb/mongodb.module';
 import { DevModule } from './modules/dev/dev.module';
 import { PekerjaanModule } from './modules/pekerjaan-NB/pekerjaan.module';
+import { ClientModule } from './modules/client/client.module';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { PekerjaanModule } from './modules/pekerjaan-NB/pekerjaan.module';
     HealthModule,
     DevModule,
     PekerjaanModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -2,12 +2,14 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import * as cookieParser from 'cookie-parser';
 import { UserIdentity } from '@modules/auth/interfaces/user-identity.interface';
+import { Identity } from '@modules/identity/core/entities/identity.entity';
 import { Logger } from '@nestjs/common';
 
 
 declare module 'express' {
   interface Request {
-    user?: UserIdentity; // or `any` if you haven't typed it yet
+    user?: UserIdentity; // JWT token data
+    identity?: Identity; // Internal identity database record
   }
 }
 

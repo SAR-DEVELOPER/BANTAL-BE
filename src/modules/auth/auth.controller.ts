@@ -14,7 +14,9 @@ import { Request, Response } from 'express';
 import { AuthService } from './auth.service';
 import { ConfigService } from '@nestjs/config';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { EnhancedJwtAuthGuard } from './guards/enhanced-jwt-auth.guard';
 import { KeycloakUrlHelper } from './keycloak-url.helper';
+import { IdentityService } from '../identity/identity.service';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +24,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
     private readonly keycloakUrlHelper: KeycloakUrlHelper,
+    private readonly identityService: IdentityService,
   ) { }
 
   @Get('callback')
@@ -81,6 +84,9 @@ export class AuthController {
     try {
       const tokenResponse = await this.authService.refreshTokens(refreshToken);
 
+      // Validate user against internal identity database with new token
+      await this.authService.validateUserFromToken(tokenResponse.access_token);
+
       const isProd = this.configService.get('NODE_ENV') === 'production';
 
       const cookieOptions = {
@@ -111,12 +117,90 @@ export class AuthController {
   }
 
   @Get('profile')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(EnhancedJwtAuthGuard)
   getProfile(@Req() req: Request) {
+    const token = req.cookies?.['auth_session'];
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.decode(token) as any;
+
     return {
+      // JWT token information
+      jwt: {
+        email: req.user?.email,
+        name: req.user?.name,
+        username: req.user?.preferred_username,
+        keycloakId: req.user?.sub,
+      },
+      // Internal identity database information
+      identity: {
+        id: req.identity?.id,
+        email: req.identity?.email,
+        name: req.identity?.name,
+        department: req.identity?.department,
+        jobTitle: req.identity?.jobTitle,
+        role: req.identity?.role,
+        status: req.identity?.status,
+        isActive: req.identity?.isActive,
+        externalId: req.identity?.externalId,
+        keycloakId: req.identity?.keycloakId,
+        createdAt: req.identity?.createdAt,
+        updatedAt: req.identity?.updatedAt,
+      },
+      // DEBUG: Add debug information
+      debug: {
+        tokenDecoded: {
+          sub: decoded?.sub,
+          email: decoded?.email,
+          iss: decoded?.iss,
+          iat: decoded?.iat,
+          exp: decoded?.exp,
+        },
+        syncStatus: {
+          keycloakIdInDb: !!req.identity?.keycloakId,
+          keycloakIdFromToken: decoded?.sub,
+          keycloakIdMatches: req.identity?.keycloakId === decoded?.sub,
+          needsSync: !req.identity?.keycloakId || req.identity?.keycloakId !== decoded?.sub,
+        }
+      }
+    };
+  }
+
+  @Get('profile-legacy')
+  @UseGuards(JwtAuthGuard)
+  getProfileLegacy(@Req() req: Request) {
+    return {
+      message: 'This endpoint uses the old JWT guard (no database validation)',
       email: req.user?.email,
       name: req.user?.name,
       username: req.user?.preferred_username,
+      keycloakId: req.user?.sub,
+    };
+  }
+
+  @Get('user-info')
+  @UseGuards(EnhancedJwtAuthGuard)
+  async getUserInfo(@Req() req: Request) {
+    // Update last login time
+    if (req.identity) {
+      await this.identityService.updateLastLogin(req.identity);
+    }
+
+    return {
+      message: 'Enhanced authentication successful',
+      user: {
+        id: req.identity?.id,
+        email: req.identity?.email,
+        name: req.identity?.name,
+        department: req.identity?.department,
+        jobTitle: req.identity?.jobTitle,
+        role: req.identity?.role,
+        lastLogin: req.identity?.updatedAt,
+      },
+      jwtClaims: {
+        sub: req.user?.sub,
+        email: req.user?.email,
+        preferred_username: req.user?.preferred_username,
+      }
     };
   }
 
@@ -164,5 +248,74 @@ export class AuthController {
       clientId: this.configService.get<string>('KEYCLOAK_CLIENT_ID'),
       clientSecretSet: !!this.configService.get<string>('KEYCLOAK_CLIENT_SECRET'),
     };
+  }
+
+  @Get('debug-token')
+  @UseGuards(EnhancedJwtAuthGuard)
+  async debugToken(@Req() req: Request) {
+    const token = req.cookies?.['auth_session'];
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.decode(token) as any;
+
+    return {
+      message: 'Debug information for current token',
+      jwtPayload: {
+        sub: decoded?.sub,
+        email: decoded?.email,
+        preferred_username: decoded?.preferred_username,
+        name: decoded?.name,
+        iat: decoded?.iat,
+        exp: decoded?.exp,
+        iss: decoded?.iss,
+      },
+      identityFromDatabase: {
+        id: req.identity?.id,
+        email: req.identity?.email,
+        keycloakId: req.identity?.keycloakId,
+        externalId: req.identity?.externalId,
+        isActive: req.identity?.isActive,
+        status: req.identity?.status,
+        updatedAt: req.identity?.updatedAt,
+      },
+      syncStatus: {
+        keycloakIdMatches: req.identity?.keycloakId === decoded?.sub,
+        keycloakIdInDb: !!req.identity?.keycloakId,
+        keycloakIdFromToken: decoded?.sub,
+      }
+    };
+  }
+
+  @Post('sync-my-keycloak-id')
+  @UseGuards(EnhancedJwtAuthGuard)
+  async syncMyKeycloakId(@Req() req: Request) {
+    const token = req.cookies?.['auth_session'];
+    const jwt = require('jsonwebtoken');
+    const decoded = jwt.decode(token) as any;
+
+    if (!decoded?.sub || !decoded?.email) {
+      throw new InternalServerErrorException('Invalid token: missing user information');
+    }
+
+    try {
+      // Force sync the user
+      const updatedIdentity = await this.identityService.validateAndSyncUser(decoded.email, decoded.sub);
+      
+      return {
+        message: 'Keycloak ID sync completed',
+        before: {
+          keycloakId: req.identity?.keycloakId,
+        },
+        after: {
+          keycloakId: updatedIdentity.keycloakId,
+        },
+        tokenInfo: {
+          email: decoded.email,
+          keycloakId: decoded.sub,
+        }
+      };
+    } catch (error) {
+      console.error('Manual sync failed:', error);
+      throw new InternalServerErrorException(`Sync failed: ${error.message}`);
+    }
   }
 }

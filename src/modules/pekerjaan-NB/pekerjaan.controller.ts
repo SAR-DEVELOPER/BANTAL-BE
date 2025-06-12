@@ -22,6 +22,8 @@ export class PekerjaanController {
     return this.pekerjaanService.healthCheck();
   }
 
+
+
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<Pekerjaan> {
     const pekerjaan = await this.pekerjaanService.findOne(id);

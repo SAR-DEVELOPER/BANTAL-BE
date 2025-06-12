@@ -9,8 +9,8 @@ export enum ClientStatus {
 
 @Entity('master_client_list')
 export class MasterClientList {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'varchar', length: 255 })
   name: string;

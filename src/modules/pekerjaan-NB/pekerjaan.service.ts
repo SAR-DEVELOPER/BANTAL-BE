@@ -32,7 +32,6 @@ export class PekerjaanService {
       projectName: documentName,
       spkId: spkId,
       teamMemberStructure: {},
-      workMilestone: {},
       paymentStructure: {}
     });
 
@@ -52,7 +51,6 @@ export class PekerjaanService {
       projectName: documentName,
       spkId: spkId,
       teamMemberStructure: {},
-      workMilestone: {},
       paymentStructure: {}
     });
 
@@ -72,4 +70,6 @@ export class PekerjaanService {
   async healthCheck(): Promise<{ status: string }> {
     return { status: 'ok' };
   }
+
+
 } 

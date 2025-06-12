@@ -1,12 +1,16 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, ForbiddenException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
 import { TokenResponse } from './interfaces/token-response.interface';
+import { IdentityService } from '../identity/identity.service';
+import * as jwt from 'jsonwebtoken';
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly configService: ConfigService) {}
-
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly identityService: IdentityService,
+  ) {}
 
   async exchangeCodeForTokens(code: string): Promise<TokenResponse> {
     const tokenEndpoint = this.configService.get<string>('KEYCLOAK_TOKEN_ENDPOINT') as string;
@@ -25,9 +29,35 @@ export class AuthService {
     const { data } = await axios.post(tokenEndpoint, body.toString(), {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     });
+
+    // Validate user against internal identity database
+    await this.validateUserFromToken(data.access_token);
   
     return data as TokenResponse;
+  }
 
+  /**
+   * Validate user from JWT token against internal identity database
+   * @param accessToken JWT access token
+   */
+  async validateUserFromToken(accessToken: string): Promise<void> {
+    try {
+      // Decode token without verification to extract user info
+      // (Token is already verified by Keycloak, we just need the payload)
+      const decoded = jwt.decode(accessToken) as any;
+      
+      if (!decoded || !decoded.email || !decoded.sub) {
+        throw new ForbiddenException('Invalid token: missing user information');
+      }
+
+      // Validate and sync user with internal database
+      await this.identityService.validateAndSyncUser(decoded.email, decoded.sub);
+      
+      console.log(`User ${decoded.email} successfully validated and synced`);
+    } catch (error) {
+      console.error('User validation failed:', error.message);
+      throw new ForbiddenException(`Access denied: ${error.message}`);
+    }
   }
 
   /**

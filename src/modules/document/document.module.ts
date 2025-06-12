@@ -32,6 +32,9 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DocumentSchema } from '../mongodb/schemas/document.schema';
 import { DebugController } from './debug.controller';
 
+// Pekerjaan module import
+import { PekerjaanModule } from '../pekerjaan-NB/pekerjaan.module';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([
@@ -52,6 +55,8 @@ import { DebugController } from './debug.controller';
     MongooseModule.forFeature([
       { name: 'Document', schema: DocumentSchema }
     ]),
+    // Import PekerjaanModule to access PekerjaanService
+    PekerjaanModule,
   ],
   providers: [
     // Core services
