@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, NotFoundException, ParseUUIDPipe } from '@nestjs/common';
 import { PekerjaanService } from './pekerjaan.service';
 import { CreatePekerjaanDto } from './dto/create-pekerjaan.dto';
 import { Pekerjaan } from './entities/pekerjaan.entity';
@@ -22,10 +22,8 @@ export class PekerjaanController {
     return this.pekerjaanService.healthCheck();
   }
 
-
-
   @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Pekerjaan> {
+  async findOne(@Param('id', ParseUUIDPipe) id: string): Promise<Pekerjaan> {
     const pekerjaan = await this.pekerjaanService.findOne(id);
     if (!pekerjaan) {
       throw new NotFoundException(`Pekerjaan with id ${id} not found`);
