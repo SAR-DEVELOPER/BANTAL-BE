@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsObject, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString, IsObject, IsOptional, IsNumber } from 'class-validator';
 
 export class CreatePekerjaanDto {
   @IsNotEmpty()
@@ -14,6 +14,22 @@ export class CreatePekerjaanDto {
   teamMemberStructure?: Record<string, any>;
 
   @IsOptional()
-  @IsObject()
-  paymentStructure?: Record<string, any>;
+  @IsNumber()
+  projectFee?: number | null;
+
+  @IsOptional()
+  @IsString()
+  currency?: string;
+
+  @IsOptional()
+  @IsString()
+  bankName?: string | null;
+
+  @IsOptional()
+  @IsString()
+  accountNumber?: string | null;
+
+  @IsOptional()
+  @IsString()
+  accountName?: string | null;
 } 

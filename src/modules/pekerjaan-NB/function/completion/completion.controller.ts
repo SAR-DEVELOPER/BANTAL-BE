@@ -38,7 +38,16 @@ interface ProjectMilestoneDeleteRequest {
 
 interface PaymentStructureRequest {
   projectId: string;
-  data?: any; // Optional data for updates
+  data?: import('../../dto/payment-structure.dto').PaymentStructureUpdateDto; // Optional data for updates
+}
+
+interface PaymentInstallmentDeleteRequest {
+  projectId: string;
+  installmentId: string;
+}
+
+interface CheckAllCompletionsRequest {
+  projectId: string;
 }
 
 @Controller('pekerjaan/completion')
@@ -92,5 +101,15 @@ export class CompletionController {
       // Get operation
       return this.completionService.getPaymentStructure(request.projectId);
     }
+  }
+
+  @Post('payment-structure/delete')
+  deletePaymentInstallment(@Body() request: PaymentInstallmentDeleteRequest) {
+    return this.completionService.deletePaymentInstallment(request.projectId, request.installmentId);
+  }
+
+  @Post('check-all')
+  checkAllCompletions(@Body() request: CheckAllCompletionsRequest) {
+    return this.completionService.checkAllCompletions(request.projectId);
   }
 } 

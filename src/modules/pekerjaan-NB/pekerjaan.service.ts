@@ -32,7 +32,11 @@ export class PekerjaanService {
       projectName: documentName,
       spkId: spkId,
       teamMemberStructure: {},
-      paymentStructure: {}
+      projectFee: null,
+      currency: 'IDR',
+      bankName: null,
+      accountNumber: null,
+      accountName: null
     });
 
     const savedPekerjaan = await this.pekerjaanRepository.save(pekerjaan);
@@ -51,7 +55,11 @@ export class PekerjaanService {
       projectName: documentName,
       spkId: spkId,
       teamMemberStructure: {},
-      paymentStructure: {}
+      projectFee: null,
+      currency: 'IDR',
+      bankName: null,
+      accountNumber: null,
+      accountName: null
     });
 
     const savedPekerjaan = await this.pekerjaanRepository.save(pekerjaan);

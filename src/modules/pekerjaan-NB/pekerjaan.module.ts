@@ -6,9 +6,10 @@ import { CompletionController } from './function/completion/completion.controlle
 import { CompletionService } from './function/completion/completion.service';
 import { Pekerjaan } from './entities/pekerjaan.entity';
 import { ProjectMilestone } from './entities/project-milestone.entity';
+import { PaymentInstallment } from './entities/payment-installment.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pekerjaan, ProjectMilestone])],
+  imports: [TypeOrmModule.forFeature([Pekerjaan, ProjectMilestone, PaymentInstallment])],
   controllers: [PekerjaanController, CompletionController],
   providers: [PekerjaanService, CompletionService],
   exports: [PekerjaanService, CompletionService],

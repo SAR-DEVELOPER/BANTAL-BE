@@ -1,5 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
 import { ProjectMilestone } from './project-milestone.entity';
+import { PaymentInstallment } from './payment-installment.entity';
 
 @Entity('pekerjaan')
 export class Pekerjaan {
@@ -18,8 +19,21 @@ export class Pekerjaan {
   @Column({ name: 'team_member_structure', type: 'jsonb' })
   teamMemberStructure: Record<string, any>;
 
-  @Column({ name: 'payment_structure', type: 'jsonb' })
-  paymentStructure: Record<string, any>;
+  // Basic payment information
+  @Column({ name: 'project_fee', type: 'decimal', precision: 19, scale: 4, nullable: true })
+  projectFee: number | null;
+
+  @Column({ name: 'currency', type: 'varchar', length: 3, default: 'IDR' })
+  currency: string;
+
+  @Column({ name: 'bank_name', type: 'varchar', nullable: true })
+  bankName: string | null;
+
+  @Column({ name: 'account_number', type: 'varchar', nullable: true })
+  accountNumber: string | null;
+
+  @Column({ name: 'account_name', type: 'varchar', nullable: true })
+  accountName: string | null;
 
   @Column({ name: 'created_at', type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
@@ -35,4 +49,7 @@ export class Pekerjaan {
 
   @OneToMany(() => ProjectMilestone, milestone => milestone.pekerjaan)
   milestones: ProjectMilestone[];
+
+  @OneToMany(() => PaymentInstallment, installment => installment.pekerjaan)
+  paymentInstallments: PaymentInstallment[];
 } 
