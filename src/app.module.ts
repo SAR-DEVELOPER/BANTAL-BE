@@ -15,6 +15,7 @@ import { MongoDBModule } from './modules/mongodb/mongodb.module';
 import { DevModule } from './modules/dev/dev.module';
 import { PekerjaanModule } from './modules/pekerjaan-NB/pekerjaan.module';
 import { ClientModule } from './modules/client/client.module';
+import { PaymentModule } from './modules/payment/payment.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ClientModule } from './modules/client/client.module';
     DevModule,
     PekerjaanModule,
     ClientModule,
+    PaymentModule,
   ],
   controllers: [AppController],
   providers: [AppService],

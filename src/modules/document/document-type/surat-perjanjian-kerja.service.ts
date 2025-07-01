@@ -124,6 +124,36 @@ export class SuratPerjanjianKerjaService {
   }
 
   /**
+   * Get SPK document by ID
+   * @param id SPK document ID
+   * @returns SPK document with relations
+   */
+  async getById(id: string): Promise<SuratPerjanjianKerja> {
+    this.logger.debug(`Retrieving SPK document with ID: ${id}`);
+
+    try {
+      const spkDocument = await this.suratPerjanjianKerjaRepository.findOne({
+        where: { id },
+        relations: ['masterDocument', 'masterDocument.type', 'masterDocument.createdBy', 'masterDocument.masterDivisionList', 'masterDocument.masterCompanyList']
+      });
+
+      if (!spkDocument) {
+        this.logger.warn(`SPK document with ID "${id}" not found`);
+        throw new NotFoundException(`SPK document with ID "${id}" not found`);
+      }
+
+      this.logger.debug(`Successfully retrieved SPK document with ID: ${id}`);
+      return spkDocument;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      this.logger.error(`Error retrieving SPK document with ID ${id}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
    * Custom validation for SuratPerjanjianKerja document type
    * @param documentData The document data to validate
    */

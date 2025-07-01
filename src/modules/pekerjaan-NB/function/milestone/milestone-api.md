@@ -92,11 +92,12 @@ All milestone endpoints are prefixed with `/pekerjaan/milestone`
     "dueDate": "2024-05-01",
     "status": "pending",
     "completionPercentage": 0,
-    "priority": "high",
-    "orderIndex": 3
+    "priority": "high"
   }
 }
 ```
+
+**Note:** The `orderIndex` is automatically generated and assigned as the next sequential number (existing milestones + 1).
 
 #### Response
 ```json
@@ -121,21 +122,39 @@ All milestone endpoints are prefixed with `/pekerjaan/milestone`
 }
 ```
 
+**Note:** The `orderIndex` value (3 in this example) was automatically calculated based on existing milestones in the project.
+
 ---
 
 ### 3. Update Existing Milestone
 **Endpoint:** `POST /pekerjaan/milestone`  
-**Description:** Updates an existing milestone (detected by presence of `id` in data object).
+**Description:** Updates an existing milestone (detected by presence of `id` in data object). You can update any combination of the available fields.
 
-#### Request Body
+#### Request Body (Minimal Update)
 ```json
 {
   "projectId": "550e8400-e29b-41d4-a716-446655440000",
   "data": {
     "id": "milestone-uuid-2",
     "status": "completed",
+    "completionPercentage": 100
+  }
+}
+```
+
+#### Request Body (Complete Update)
+```json
+{
+  "projectId": "550e8400-e29b-41d4-a716-446655440000",
+  "data": {
+    "id": "milestone-uuid-2",
+    "milestoneName": "Updated Design Phase",
+    "milestoneDescription": "Design phase completed with final approval and stakeholder sign-off",
+    "dueDate": "2024-03-15",
+    "status": "completed",
     "completionPercentage": 100,
-    "milestoneDescription": "Design phase completed with final approval"
+    "priority": "high",
+    "orderIndex": 2
   }
 }
 ```
@@ -149,12 +168,12 @@ All milestone endpoints are prefixed with `/pekerjaan/milestone`
   "data": {
     "id": "milestone-uuid-2",
     "pekerjaanId": "550e8400-e29b-41d4-a716-446655440000",
-    "milestoneName": "Design Phase",
-    "milestoneDescription": "Design phase completed with final approval",
-    "dueDate": "2024-03-01T00:00:00.000Z",
+    "milestoneName": "Updated Design Phase",
+    "milestoneDescription": "Design phase completed with final approval and stakeholder sign-off",
+    "dueDate": "2024-03-15T00:00:00.000Z",
     "status": "completed",
     "completionPercentage": 100,
-    "priority": "medium",
+    "priority": "high",
     "orderIndex": 2,
     "createdAt": "2024-01-01T10:00:00.000Z",
     "updatedAt": "2024-02-25T15:30:00.000Z"
@@ -162,6 +181,16 @@ All milestone endpoints are prefixed with `/pekerjaan/milestone`
   "message": "Milestone updated successfully"
 }
 ```
+
+#### Updatable Fields
+When updating a milestone, you can modify any combination of these fields:
+- `milestoneName` - Update the milestone title
+- `milestoneDescription` - Update the detailed description
+- `dueDate` - Update the target completion date (ISO 8601 format: "YYYY-MM-DD")
+- `status` - Update the current status (pending, in_progress, completed, cancelled)
+- `completionPercentage` - Update progress percentage (0-100)
+- `priority` - Update priority level (low, medium, high, critical)
+- `orderIndex` - Update display sequence order
 
 ---
 
@@ -235,19 +264,19 @@ Same as endpoint #1 (Get Project Milestones)
 
 ## Field Descriptions
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `id` | string (UUID) | ❌ | Milestone unique identifier (auto-generated) |
-| `pekerjaanId` | string (UUID) | ✅ | Foreign key to pekerjaan table |
-| `milestoneName` | string | ✅ | Name/title of the milestone |
-| `milestoneDescription` | string \| null | ❌ | Detailed description of the milestone |
-| `dueDate` | Date \| null | ❌ | Target completion date (ISO 8601 format) |
-| `status` | enum | ❌ | Current status (default: 'pending') |
-| `completionPercentage` | number | ❌ | Progress percentage 0-100 (default: 0) |
-| `priority` | enum | ❌ | Milestone priority (default: 'medium') |
-| `orderIndex` | number | ❌ | Display order sequence (default: 0) |
-| `createdAt` | Date | ❌ | Creation timestamp (auto-generated) |
-| `updatedAt` | Date | ❌ | Last update timestamp (auto-updated) |
+| Field | Type | Required | Creatable | Updatable | Default | Description |
+|-------|------|----------|-----------|-----------|---------|-------------|
+| `id` | string (UUID) | ❌ | ❌ | ❌ | auto-generated | Milestone unique identifier |
+| `pekerjaanId` | string (UUID) | ✅ | ❌ | ❌ | - | Foreign key to pekerjaan table |
+| `milestoneName` | string | ✅ | ✅ | ✅ | - | Name/title of the milestone |
+| `milestoneDescription` | string \| null | ❌ | ✅ | ✅ | null | Detailed description of the milestone |
+| `dueDate` | Date \| null | ❌ | ✅ | ✅ | null | Target completion date (ISO 8601 format: "YYYY-MM-DD") |
+| `status` | enum | ❌ | ✅ | ✅ | 'pending' | Current status (pending, in_progress, completed, cancelled) |
+| `completionPercentage` | number | ❌ | ✅ | ✅ | 0 | Progress percentage 0-100 |
+| `priority` | enum | ❌ | ✅ | ✅ | 'medium' | Milestone priority (low, medium, high, critical) |
+| `orderIndex` | number | ❌ | ❌ | ✅ | auto-generated | Display order sequence (auto-assigned as last + 1) |
+| `createdAt` | Date | ❌ | ❌ | ❌ | auto-generated | Creation timestamp |
+| `updatedAt` | Date | ❌ | ❌ | ❌ | auto-updated | Last update timestamp |
 
 ## Business Logic
 
@@ -315,13 +344,12 @@ curl -X POST http://localhost:3000/pekerjaan/milestone \
       "milestoneName": "Requirements Analysis",
       "milestoneDescription": "Gather and analyze project requirements",
       "dueDate": "2024-03-15",
-      "priority": "high",
-      "orderIndex": 1
+      "priority": "high"
     }
   }'
 ```
 
-2. **Update milestone progress:**
+2. **Update milestone progress (minimal update):**
 ```bash
 curl -X POST http://localhost:3000/pekerjaan/milestone \
   -H "Content-Type: application/json" \
@@ -335,7 +363,26 @@ curl -X POST http://localhost:3000/pekerjaan/milestone \
   }'
 ```
 
-3. **Check project status:**
+3. **Update milestone with multiple fields:**
+```bash
+curl -X POST http://localhost:3000/pekerjaan/milestone \
+  -H "Content-Type: application/json" \
+  -d '{
+    "projectId": "550e8400-e29b-41d4-a716-446655440000",
+    "data": {
+      "id": "milestone-uuid-1",
+      "milestoneName": "Updated Requirements Analysis",
+      "milestoneDescription": "Comprehensive requirements gathering including stakeholder interviews",
+      "dueDate": "2024-03-20",
+      "status": "completed",
+      "completionPercentage": 100,
+      "priority": "critical",
+      "orderIndex": 1
+    }
+  }'
+```
+
+4. **Check project status:**
 ```bash
 curl -X POST http://localhost:3000/pekerjaan/milestone \
   -H "Content-Type: application/json" \
@@ -349,9 +396,13 @@ curl -X POST http://localhost:3000/pekerjaan/milestone \
 1. **Use meaningful milestone names** that clearly describe the deliverable
 2. **Set realistic due dates** to maintain project timeline accuracy
 3. **Update completion percentages regularly** for accurate project tracking
-4. **Use orderIndex** to maintain logical milestone sequence
-5. **Set appropriate priorities** to help with resource allocation
-6. **Include detailed descriptions** for complex milestones
+4. **Milestone ordering is automatic** - new milestones are always added at the end of the sequence
+5. **Use orderIndex updates** only when you need to reorder existing milestones
+6. **Set appropriate priorities** to help with resource allocation
+7. **Include detailed descriptions** for complex milestones
+8. **Perform partial updates** when only changing specific fields to avoid unnecessary data transfer
+9. **Update multiple related fields together** when making significant milestone changes
+10. **Maintain consistent date formats** using ISO 8601 format (YYYY-MM-DD) for due dates
 
 ## Integration Notes
 

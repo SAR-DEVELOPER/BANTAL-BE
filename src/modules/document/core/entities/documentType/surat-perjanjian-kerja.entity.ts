@@ -68,4 +68,5 @@ export class SuratPerjanjianKerja extends BaseVersionedDocument {
         type: 'int',
     })
     paymentInstallment: number;
+    
 }

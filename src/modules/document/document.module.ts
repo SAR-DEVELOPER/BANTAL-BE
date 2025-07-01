@@ -22,6 +22,7 @@ import { DocumentTypeController } from './document-type.controller';
 import { DocumentFactoryService } from './document-factory.service';
 import { SuratPenawaranService } from './document-type/surat-penawaran.service';
 import { SuratPerjanjianKerjaService } from './document-type/surat-perjanjian-kerja.service';
+import { SuratPerjanjianKerjaController } from './surat-perjanjian-kerja.controller';
 
 // External entities
 import { Identity } from '@modules/identity/core/entities/identity.entity';
@@ -73,7 +74,8 @@ import { PekerjaanModule } from '../pekerjaan-NB/pekerjaan.module';
     DocumentTypeController,
     DebugController,
     CreateDocumentController,
-    FinalizeDocumentController
+    FinalizeDocumentController,
+    SuratPerjanjianKerjaController
   ],
   exports: [
     DocumentService,

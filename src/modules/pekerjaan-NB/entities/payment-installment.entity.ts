@@ -39,7 +39,7 @@ export class PaymentInstallment {
   @Column({ name: 'description', type: 'text' })
   description: string;
 
-  @Column({ name: 'status', type: 'enum', enum: ['pending', 'due', 'requested', 'paid'], default: 'pending' })
+  @Column({ name: 'status', type: 'enum', enum: ['pending', 'due', 'cleared', 'requested', 'paid', 'issue'], default: 'pending' })
   status: string;
 
   @Column({ name: 'notes', type: 'text', nullable: true })

@@ -68,6 +68,17 @@ export class MilestoneService {
       throw new NotFoundException(`Project with id ${projectId} not found`);
     }
 
+    // Get existing milestones to calculate next order index
+    const existingMilestones = await this.milestoneRepository.find({
+      where: { pekerjaanId: projectId },
+      order: { orderIndex: 'DESC' }
+    });
+
+    // Calculate next order index (highest existing + 1, or 1 if no milestones exist)
+    const nextOrderIndex = existingMilestones.length > 0 
+      ? Math.max(...existingMilestones.map(m => m.orderIndex)) + 1 
+      : 1;
+
     // Create new milestone
     const milestone = this.milestoneRepository.create({
       pekerjaanId: projectId,
@@ -77,19 +88,19 @@ export class MilestoneService {
       status: data.status || MilestoneStatus.PENDING,
       completionPercentage: data.completionPercentage || 0,
       priority: data.priority || MilestonePriority.MEDIUM,
-      orderIndex: data.orderIndex || 0,
+      orderIndex: nextOrderIndex,
     });
 
     const savedMilestone = await this.milestoneRepository.save(milestone);
 
-    // Recalculate project completion
+    // Get all milestones for completion calculation (including the new one)
     const allMilestones = await this.milestoneRepository.find({
       where: { pekerjaanId: projectId }
     });
     const completionPercentage = this.calculateProjectCompletion(allMilestones);
     const status = this.determineProjectStatus(allMilestones, completionPercentage);
 
-    this.logger.log(`Created milestone ${savedMilestone.id} for project ${projectId}`);
+    this.logger.log(`Created milestone ${savedMilestone.id} for project ${projectId} with orderIndex ${nextOrderIndex}`);
 
     return {
       projectId,

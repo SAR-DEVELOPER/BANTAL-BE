@@ -40,9 +40,7 @@ export class CreateMilestoneDataDto {
   @IsEnum(MilestonePriority)
   priority?: MilestonePriority;
 
-  @IsOptional()
-  @IsNumber()
-  orderIndex?: number;
+  // orderIndex is auto-generated and not accepted in create requests
 }
 
 export class UpdateMilestoneDataDto {
