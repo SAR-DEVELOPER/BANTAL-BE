@@ -9,6 +9,7 @@ import {
 // Document type entities
 import { SuratPenawaran } from './core/entities/documentType/surat-penawaran.entity';
 import { SuratPerjanjianKerja } from './core/entities/documentType/surat-perjanjian-kerja.entity';
+import { SuratTagihanNonBulanan } from './core/entities/documentType/surat-tagihan-non-bulanan.entity';
 
 // Existing service and controller
 import { DocumentService } from './document.service';
@@ -22,6 +23,7 @@ import { DocumentTypeController } from './document-type.controller';
 import { DocumentFactoryService } from './document-factory.service';
 import { SuratPenawaranService } from './document-type/surat-penawaran.service';
 import { SuratPerjanjianKerjaService } from './document-type/surat-perjanjian-kerja.service';
+import { SuratTagihanNonBulananService } from './document-type/surat-tagihan-non-bulanan.service';
 import { SuratPerjanjianKerjaController } from './surat-perjanjian-kerja.controller';
 
 // External entities
@@ -46,6 +48,7 @@ import { PekerjaanModule } from '../pekerjaan-NB/pekerjaan.module';
       // Document type entities
       SuratPenawaran,
       SuratPerjanjianKerja,
+      SuratTagihanNonBulanan,
       
       // External entities
       Identity,
@@ -68,6 +71,7 @@ import { PekerjaanModule } from '../pekerjaan-NB/pekerjaan.module';
     // Document type services
     SuratPenawaranService,
     SuratPerjanjianKerjaService,
+    SuratTagihanNonBulananService,
   ],
   controllers: [
     DocumentController,
@@ -83,6 +87,7 @@ import { PekerjaanModule } from '../pekerjaan-NB/pekerjaan.module';
     DocumentFactoryService,
     SuratPenawaranService,
     SuratPerjanjianKerjaService,
+    SuratTagihanNonBulananService,
   ],
 })
 export class DocumentModule {}

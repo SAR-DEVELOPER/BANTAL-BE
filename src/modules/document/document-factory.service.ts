@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { SuratPenawaranService } from './document-type/surat-penawaran.service';
 import { SuratPerjanjianKerjaService } from './document-type/surat-perjanjian-kerja.service';
+import { SuratTagihanNonBulananService } from './document-type/surat-tagihan-non-bulanan.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DocumentType } from './core/entities';
 import { Repository } from 'typeorm';
@@ -13,6 +14,7 @@ export class DocumentFactoryService {
   constructor(
     private readonly suratPenawaranService: SuratPenawaranService,
     private readonly suratPerjanjianKerjaService: SuratPerjanjianKerjaService,
+    private readonly suratTagihanNonBulananService: SuratTagihanNonBulananService,
     @InjectRepository(DocumentType)
     private documentTypeRepository: Repository<DocumentType>,
   ) {
@@ -21,11 +23,13 @@ export class DocumentFactoryService {
       ['SP', this.suratPenawaranService], // ShortHand for SuratPenawaran
       ['Pwn', this.suratPenawaranService], // Alternative ShortHand for SuratPenawaran
       ['SPK', this.suratPerjanjianKerjaService], // ShortHand for SuratPerjanjianKerja
+      ['TagNB', this.suratTagihanNonBulananService], // ShortHand for SuratTagihanNonBulanan
     ]);
     
     this.logger.log('DocumentFactoryService initialized with services:');
     this.logger.log(`SP/Pwn -> ${this.suratPenawaranService.constructor.name}`);
     this.logger.log(`SPK -> ${this.suratPerjanjianKerjaService.constructor.name}`);
+    this.logger.log(`TagNB -> ${this.suratTagihanNonBulananService.constructor.name}`);
     
     // Query all document types on startup
     setTimeout(async () => {
