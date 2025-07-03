@@ -34,16 +34,16 @@ export class MockDataFullInsert2099999999999 implements MigrationInterface {
 
         // Insert into master_client_list
         await queryRunner.query(`
-            INSERT INTO "master_client_list" (id, name, "group", type_id, contact_name, contact_position, contact_email, contact_phone, referral_from, date_of_first_project, status, priority_number, created_at, updated_at)
+            INSERT INTO "master_client_list" (id, name, "group", type_id, contact_name, contact_position, contact_email, contact_phone, referral_from, date_of_first_project, status, priority_number, "isWapu", created_at, updated_at)
             VALUES 
-            (uuid_generate_v4(), 'PT Perkebunan Nusantara II', 'PTPN Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Ahmad Sutrisno', 'General Manager', 'ahmad.sutrisno@ptpn.co.id', '+62-21-5551234', 'Government referral', '2023-01-15', 'Active', 1, now(), now()),
-            (uuid_generate_v4(), 'PT Kinra', 'Technology Group', (SELECT id FROM client_type WHERE name = 'Badan (Swasta)'), 'Sari Dewi', 'CEO', 'sari.dewi@kinra.co.id', '+62-21-5552345', 'Business network', '2023-03-20', 'Active', 2, now(), now()),
-            (uuid_generate_v4(), 'PPT Energy Trading Ltd.', 'Energy Group', (SELECT id FROM client_type WHERE name = 'Badan (Asing)'), 'John Smith', 'Managing Director', 'john.smith@pptenergy.com', '+65-6123-4567', 'International partner', '2023-05-10', 'Active', 1, now(), now()),
-            (uuid_generate_v4(), 'PT Bank Mandiri', 'Financial Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Rina Sari', 'Branch Manager', 'rina.sari@bankmandiri.co.id', '+62-21-5553456', 'Banking network', '2023-02-28', 'Active', 1, now(), now()),
-            (uuid_generate_v4(), 'CV Maju Jaya', 'Trading Group', (SELECT id FROM client_type WHERE name = 'Badan (Swasta)'), 'Budi Santoso', 'Owner', 'budi@majujaya.co.id', '+62-21-5554567', 'Local business', '2023-04-12', 'Active', 3, now(), now()),
-            (uuid_generate_v4(), 'Ir. Soekarno', null, (SELECT id FROM client_type WHERE name = 'Perorangan'), 'Soekarno', 'Individual', 'soekarno@email.com', '+62-812-3456-7890', 'Personal referral', '2023-06-01', 'Active', 2, now(), now()),
-            (uuid_generate_v4(), 'PT Telkom Indonesia', 'Telecommunications Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Dian Pratiwi', 'Project Manager', 'dian.pratiwi@telkom.co.id', '+62-21-5555678', 'Government network', '2023-01-30', 'Active', 1, now(), now()),
-            (uuid_generate_v4(), 'Singapore Energy Pte Ltd', 'Energy Group', (SELECT id FROM client_type WHERE name = 'Badan (Asing)'), 'Michael Tan', 'Director', 'michael.tan@sgenergy.sg', '+65-6234-5678', 'Regional expansion', '2023-07-15', 'Active', 2, now(), now());
+            (uuid_generate_v4(), 'PT Perkebunan Nusantara II', 'PTPN Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Ahmad Sutrisno', 'General Manager', 'ahmad.sutrisno@ptpn.co.id', '+62-21-5551234', 'Government referral', '2023-01-15', 'Active', 1, true, now(), now()),
+            (uuid_generate_v4(), 'PT Kinra', 'Technology Group', (SELECT id FROM client_type WHERE name = 'Badan (Swasta)'), 'Sari Dewi', 'CEO', 'sari.dewi@kinra.co.id', '+62-21-5552345', 'Business network', '2023-03-20', 'Active', 2, false, now(), now()),
+            (uuid_generate_v4(), 'PPT Energy Trading Ltd.', 'Energy Group', (SELECT id FROM client_type WHERE name = 'Badan (Asing)'), 'John Smith', 'Managing Director', 'john.smith@pptenergy.com', '+65-6123-4567', 'International partner', '2023-05-10', 'Active', 1, false, now(), now()),
+            (uuid_generate_v4(), 'PT Bank Mandiri', 'Financial Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Rina Sari', 'Branch Manager', 'rina.sari@bankmandiri.co.id', '+62-21-5553456', 'Banking network', '2023-02-28', 'Active', 1, true, now(), now()),
+            (uuid_generate_v4(), 'CV Maju Jaya', 'Trading Group', (SELECT id FROM client_type WHERE name = 'Badan (Swasta)'), 'Budi Santoso', 'Owner', 'budi@majujaya.co.id', '+62-21-5554567', 'Local business', '2023-04-12', 'Active', 3, true, now(), now()),
+            (uuid_generate_v4(), 'Ir. Soekarno', null, (SELECT id FROM client_type WHERE name = 'Perorangan'), 'Soekarno', 'Individual', 'soekarno@email.com', '+62-812-3456-7890', 'Personal referral', '2023-06-01', 'Active', 2, false, now(), now()),
+            (uuid_generate_v4(), 'PT Telkom Indonesia', 'Telecommunications Group', (SELECT id FROM client_type WHERE name = 'Badan (BUMN)'), 'Dian Pratiwi', 'Project Manager', 'dian.pratiwi@telkom.co.id', '+62-21-5555678', 'Government network', '2023-01-30', 'Active', 1, true, now(), now()),
+            (uuid_generate_v4(), 'Singapore Energy Pte Ltd', 'Energy Group', (SELECT id FROM client_type WHERE name = 'Badan (Asing)'), 'Michael Tan', 'Director', 'michael.tan@sgenergy.sg', '+65-6234-5678', 'Regional expansion', '2023-07-15', 'Active', 2, false, now(), now());
         `);
 
         // Insert into document_type

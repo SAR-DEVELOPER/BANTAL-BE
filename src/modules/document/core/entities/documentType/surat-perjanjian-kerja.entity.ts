@@ -68,5 +68,11 @@ export class SuratPerjanjianKerja extends BaseVersionedDocument {
         type: 'int',
     })
     paymentInstallment: number;
-    
+
+    @Column({
+        name: 'isIncludeVAT',
+        type: 'boolean',
+        default: false
+    })
+    isIncludeVAT: boolean;
 }

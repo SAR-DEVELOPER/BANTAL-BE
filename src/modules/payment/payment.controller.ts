@@ -63,4 +63,18 @@ export class PaymentController {
   ): Promise<PaymentStructureResponseDto> {
     return this.paymentService.deletePaymentInstallment(pekerjaanId, installmentId);
   }
+
+  /**
+   * Check and update payment term status by payment ID
+   */
+  @Get('installments/:paymentId/check-status')
+  async checkAndUpdatePaymentStatus(
+    @Param('paymentId', ParseUUIDPipe) paymentId: string
+  ): Promise<{ 
+    paymentId: string; 
+    status: string; 
+    message: string; 
+  }> {
+    return this.paymentService.checkAndUpdatePaymentStatus(paymentId);
+  }
 } 

@@ -45,8 +45,13 @@ export class SuratPerjanjianKerjaService {
       startDate, 
       endDate, 
       projectFee, 
-      paymentInstallment 
+      paymentInstallment,
+      isIncludeVAT,
+      isIncludeTax 
     } = documentData;
+
+    // Handle both field names for backward compatibility
+    const vatIncluded = isIncludeVAT ?? isIncludeTax ?? false;
 
     try {
       // Use raw SQL approach
@@ -57,6 +62,7 @@ export class SuratPerjanjianKerjaService {
         end_date: endDate || null,
         project_fee: projectFee,
         payment_installment: paymentInstallment,
+        isIncludeVAT: vatIncluded,
         version_number: 1,
         is_latest: true,
         uploaded_by: masterDocument.createdBy?.id || 'system',
@@ -73,6 +79,7 @@ export class SuratPerjanjianKerjaService {
           end_date,
           project_fee,
           payment_installment,
+          "isIncludeVAT",
           version_number, 
           is_latest, 
           uploaded_by, 
@@ -80,7 +87,7 @@ export class SuratPerjanjianKerjaService {
           created_at,
           updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
         ) RETURNING id`,
         [
           clientId,
@@ -89,6 +96,7 @@ export class SuratPerjanjianKerjaService {
           endDate || null,
           projectFee,
           paymentInstallment,
+          vatIncluded,
           1,
           true,
           masterDocument.createdBy?.id || 'system',

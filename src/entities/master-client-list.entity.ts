@@ -55,4 +55,7 @@ export class MasterClientList {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @Column({ type: 'boolean', default: true })
+  isWapu: boolean;
 }

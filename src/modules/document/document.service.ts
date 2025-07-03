@@ -11,6 +11,7 @@ import { MasterCompanyList } from 'src/entities/master-company-list.entity';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SuratPenawaran } from './core/entities/documentType/surat-penawaran.entity';
+import { SuratPerjanjianKerja } from './core/entities/documentType/surat-perjanjian-kerja.entity';
 
 interface MongoDocument {
   versions: Array<{
@@ -41,6 +42,9 @@ export class DocumentService {
     
     @InjectRepository(SuratPenawaran)
     private readonly suratPenawaranRepository: Repository<SuratPenawaran>,
+    
+    @InjectRepository(SuratPerjanjianKerja)
+    private readonly suratPerjanjianKerjaRepository: Repository<SuratPerjanjianKerja>,
     
     @InjectModel('Document')
     private readonly documentModel: Model<MongoDocument>
@@ -160,6 +164,26 @@ export class DocumentService {
         documentDto.versionNumber = suratPenawaran.versionNumber;
         documentDto.isLatest = suratPenawaran.isLatest;
         documentDto.uploadedBy = suratPenawaran.uploadedBy;
+      }
+    }
+
+    // If this is a SuratPerjanjianKerja, add the specific fields
+    if (document.type?.shortHand === 'SPK') {
+      const suratPerjanjianKerja = await this.suratPerjanjianKerjaRepository.findOne({
+        where: { masterDocumentId: document.id },
+      });
+
+      if (suratPerjanjianKerja) {
+        documentDto.clientId = suratPerjanjianKerja.clientId;
+        documentDto.documentDescription = suratPerjanjianKerja.documentDescription;
+        documentDto.startDate = suratPerjanjianKerja.startDate;
+        documentDto.endDate = suratPerjanjianKerja.endDate ?? undefined;
+        documentDto.projectFee = suratPerjanjianKerja.projectFee;
+        documentDto.paymentInstallment = suratPerjanjianKerja.paymentInstallment;
+        documentDto.isIncludeVAT = suratPerjanjianKerja.isIncludeVAT;
+        documentDto.versionNumber = suratPerjanjianKerja.versionNumber;
+        documentDto.isLatest = suratPerjanjianKerja.isLatest;
+        documentDto.uploadedBy = suratPerjanjianKerja.uploadedBy;
       }
     }
 

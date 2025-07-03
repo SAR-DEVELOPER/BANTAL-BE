@@ -138,6 +138,142 @@ export class PaymentService {
   }
 
   /**
+   * Check and update payment term status by payment ID
+   */
+  async checkAndUpdatePaymentStatus(paymentId: string): Promise<{ 
+    paymentId: string; 
+    status: string; 
+    message: string; 
+    installmentInfo?: {
+      installmentNumber: number;
+      amount: number;
+      percentage: number;
+      triggerType: string;
+      triggerValue?: string;
+      dueDate?: Date;
+      description: string;
+    }
+  }> {
+    this.logger.debug(`Checking and updating payment status for payment: ${paymentId}`);
+    
+    // Find the payment installment
+    const installment = await this.paymentInstallmentRepository.findOne({
+      where: { id: paymentId },
+      relations: ['projectMilestone']
+    });
+
+    if (!installment) {
+      throw new NotFoundException(`Payment installment with id ${paymentId} not found`);
+    }
+
+    // Calculate current status based on trigger conditions
+    const currentStatus = await this.calculatePaymentStatus(installment);
+    
+    // Update status if it has changed
+    if (installment.status !== currentStatus.status) {
+      installment.status = currentStatus.status as any;
+      await this.paymentInstallmentRepository.save(installment);
+      this.logger.debug(`Payment status updated from ${installment.status} to ${currentStatus.status} for payment: ${paymentId}`);
+    }
+
+    return {
+      paymentId,
+      status: currentStatus.status,
+      message: currentStatus.message,
+      installmentInfo: {
+        installmentNumber: installment.installmentNumber,
+        amount: Number(installment.amount),
+        percentage: Number(installment.percentage),
+        triggerType: installment.triggerType,
+        triggerValue: installment.triggerValue ?? undefined,
+        dueDate: installment.dueDate ?? undefined,
+        description: installment.description,
+      }
+    };
+  }
+
+  /**
+   * Calculate payment status based on trigger conditions
+   */
+  private async calculatePaymentStatus(installment: PaymentInstallment): Promise<{
+    status: string;
+    message: string;
+  }> {
+    const now = new Date();
+
+    // If already paid, keep it as paid
+    if (installment.status === 'paid') {
+      return {
+        status: 'paid',
+        message: 'Payment has been completed'
+      };
+    }
+
+    // Check trigger conditions
+    switch (installment.triggerType) {
+      case 'date':
+        if (installment.dueDate) {
+          if (now > installment.dueDate) {
+            return {
+              status: 'overdue',
+              message: `Payment is overdue since ${installment.dueDate.toLocaleDateString()}`
+            };
+          } else {
+            const daysUntilDue = Math.ceil((installment.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+            return {
+              status: 'pending',
+              message: `Payment due in ${daysUntilDue} days (${installment.dueDate.toLocaleDateString()})`
+            };
+          }
+        }
+        break;
+
+      case 'milestone':
+        if (installment.projectMilestone) {
+          if (installment.projectMilestone.status === 'completed') {
+            return {
+              status: 'due',
+                             message: `Milestone "${installment.projectMilestone.milestoneName}" completed - payment is now due`
+            };
+          } else {
+            return {
+              status: 'pending',
+                             message: `Waiting for milestone "${installment.projectMilestone.milestoneName}" to be completed`
+            };
+          }
+        } else {
+          return {
+            status: 'pending',
+            message: 'Waiting for milestone to be assigned'
+          };
+        }
+        break;
+
+      case 'event':
+        if (installment.triggerValue === 'document_submission') {
+          // For now, we'll assume documents need to be checked manually
+          return {
+            status: 'pending',
+            message: 'Waiting for document submission confirmation'
+          };
+        }
+        break;
+
+      default:
+        return {
+          status: 'pending',
+          message: 'Payment terms are being reviewed'
+        };
+    }
+
+    // Default case
+    return {
+      status: 'pending',
+      message: 'Payment is pending trigger condition'
+    };
+  }
+
+  /**
    * Calculate payment structure completion percentage
    */
   private calculateCompletionPercentage(pekerjaan: Pekerjaan, installments: PaymentInstallment[]): number {

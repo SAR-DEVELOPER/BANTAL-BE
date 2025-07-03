@@ -32,9 +32,18 @@ export class DocumentListDto {
   // Document type specific fields
   clientId?: string;
   documentDescription?: string;
+  
+  // SuratPenawaran specific fields
   offeredService?: string;
   personInChargeId?: string;
   personInChargeName?: string;
+  
+  // SuratPerjanjianKerja specific fields
+  startDate?: Date;
+  endDate?: Date;
+  projectFee?: number;
+  paymentInstallment?: number;
+  isIncludeVAT?: boolean;
   
   // Version info
   versionNumber?: number;
