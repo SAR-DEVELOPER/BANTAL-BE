@@ -12,6 +12,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { SuratPenawaran } from './core/entities/documentType/surat-penawaran.entity';
 import { SuratPerjanjianKerja } from './core/entities/documentType/surat-perjanjian-kerja.entity';
+import { SuratTagihanNonBulanan } from './core/entities/documentType/surat-tagihan-non-bulanan.entity';
 
 interface MongoDocument {
   versions: Array<{
@@ -45,6 +46,9 @@ export class DocumentService {
     
     @InjectRepository(SuratPerjanjianKerja)
     private readonly suratPerjanjianKerjaRepository: Repository<SuratPerjanjianKerja>,
+    
+    @InjectRepository(SuratTagihanNonBulanan)
+    private readonly suratTagihanNonBulananRepository: Repository<SuratTagihanNonBulanan>,
     
     @InjectModel('Document')
     private readonly documentModel: Model<MongoDocument>
@@ -184,6 +188,28 @@ export class DocumentService {
         documentDto.versionNumber = suratPerjanjianKerja.versionNumber;
         documentDto.isLatest = suratPerjanjianKerja.isLatest;
         documentDto.uploadedBy = suratPerjanjianKerja.uploadedBy;
+      }
+    }
+
+    // If this is a SuratTagihanNonBulanan, add the specific fields
+    if (document.type?.shortHand === 'TagNB') {
+      const suratTagihanNonBulanan = await this.suratTagihanNonBulananRepository.findOne({
+        where: { masterDocumentId: document.id },
+      });
+
+      if (suratTagihanNonBulanan) {
+        documentDto.clientId = suratTagihanNonBulanan.clientId;
+        documentDto.documentDescription = suratTagihanNonBulanan.documentDescription;
+        documentDto.contractValue = suratTagihanNonBulanan.contractValue;
+        documentDto.dppNilaiLain = suratTagihanNonBulanan.dppNilaiLain;
+        documentDto.ppn12 = suratTagihanNonBulanan.ppn12;
+        documentDto.pph23 = suratTagihanNonBulanan.pph23;
+        documentDto.totalTagihan = suratTagihanNonBulanan.totalTagihan;
+        documentDto.bankInfo = suratTagihanNonBulanan.bankInfo;
+        documentDto.spkId = suratTagihanNonBulanan.spkId;
+        documentDto.versionNumber = suratTagihanNonBulanan.versionNumber;
+        documentDto.isLatest = suratTagihanNonBulanan.isLatest;
+        documentDto.uploadedBy = suratTagihanNonBulanan.uploadedBy;
       }
     }
 

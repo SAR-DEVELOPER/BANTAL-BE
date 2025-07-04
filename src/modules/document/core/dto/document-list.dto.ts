@@ -45,6 +45,19 @@ export class DocumentListDto {
   paymentInstallment?: number;
   isIncludeVAT?: boolean;
   
+  // SuratTagihanNonBulanan specific fields
+  contractValue?: number;
+  dppNilaiLain?: number;
+  ppn12?: number;
+  pph23?: number;
+  totalTagihan?: number;
+  bankInfo?: {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+  };
+  spkId?: string;
+  
   // Version info
   versionNumber?: number;
   isLatest?: boolean;

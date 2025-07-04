@@ -42,13 +42,30 @@ export class SuratTagihanNonBulananService {
       throw error;
     }
     
-    const { clientId, documentDescription } = documentData;
+    const { 
+      clientId, 
+      documentDescription, 
+      contractValue, 
+      dppNilaiLain, 
+      ppn12, 
+      pph23, 
+      totalTagihan, 
+      bankInfo, 
+      spkId 
+    } = documentData;
 
     try {
       // Use raw SQL approach
       const rawValues = {
         client_id: clientId,
         document_description: documentDescription,
+        "Nilai Kontrak": contractValue,
+        DPP_nilai_lain: dppNilaiLain,
+        PPN_12: ppn12,
+        PPh_23: pph23,
+        Total_tagihan: totalTagihan,
+        bank_info: bankInfo,
+        SPK_id: spkId,
         version_number: 1,
         is_latest: true,
         uploaded_by: masterDocument.createdBy?.id || 'system',
@@ -60,7 +77,14 @@ export class SuratTagihanNonBulananService {
       const insertResult = await this.suratTagihanNonBulananRepository.query(
         `INSERT INTO document_schema.surat_tagihan_non_bulanan (
           client_id, 
-          document_description, 
+          document_description,
+          "Nilai Kontrak",
+          "DPP_nilai_lain",
+          "PPN_12",
+          "PPh_23",
+          "Total_tagihan",
+          bank_info,
+          "SPK_id",
           version_number, 
           is_latest, 
           uploaded_by, 
@@ -68,11 +92,18 @@ export class SuratTagihanNonBulananService {
           created_at,
           updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()
         ) RETURNING id`,
         [
           clientId,
           documentDescription,
+          contractValue,
+          dppNilaiLain,
+          ppn12,
+          pph23,
+          totalTagihan,
+          JSON.stringify(bankInfo),
+          spkId,
           1,
           true,
           masterDocument.createdBy?.id || 'system',
@@ -120,6 +151,30 @@ export class SuratTagihanNonBulananService {
     
     if (!documentData.documentDescription) {
       throw new BadRequestException('Document description is required for SuratTagihanNonBulanan');
+    }
+    
+    if (documentData.contractValue === undefined || documentData.contractValue === null) {
+      throw new BadRequestException('Contract value is required for SuratTagihanNonBulanan');
+    }
+    
+    if (documentData.dppNilaiLain === undefined || documentData.dppNilaiLain === null) {
+      throw new BadRequestException('DPP nilai lain is required for SuratTagihanNonBulanan');
+    }
+    
+    if (documentData.ppn12 === undefined || documentData.ppn12 === null) {
+      throw new BadRequestException('PPN 12% is required for SuratTagihanNonBulanan');
+    }
+    
+    if (documentData.pph23 === undefined || documentData.pph23 === null) {
+      throw new BadRequestException('PPh 23 is required for SuratTagihanNonBulanan');
+    }
+    
+    if (documentData.totalTagihan === undefined || documentData.totalTagihan === null) {
+      throw new BadRequestException('Total tagihan is required for SuratTagihanNonBulanan');
+    }
+    
+    if (!documentData.spkId) {
+      throw new BadRequestException('SPK ID is required for SuratTagihanNonBulanan');
     }
     
     this.logger.debug('All required fields are present');

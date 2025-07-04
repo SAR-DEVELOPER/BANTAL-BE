@@ -29,6 +29,12 @@ import { Entity, Column, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { BaseVersionedDocument } from "../base-versioned-document.entity";
 import { Schemas } from "src/config/schema.config";
 
+interface BankInfo {
+    bankName?: string;
+    accountNumber?: string;
+    accountName?: string;
+}
+
 @Entity('surat_tagihan_non_bulanan', { schema: Schemas.DOCUMENT })
 export class SuratTagihanNonBulanan extends BaseVersionedDocument {
     @CreateDateColumn({
@@ -64,4 +70,58 @@ export class SuratTagihanNonBulanan extends BaseVersionedDocument {
         type: 'text',
     })
     documentDescription: string;
+
+    @Column({
+        name: 'Nilai Kontrak',
+        type: 'decimal',
+        precision: 19,
+        scale: 4,
+    })
+    contractValue: number;
+
+    @Column({
+        name: 'DPP_nilai_lain',
+        type: 'decimal',
+        precision: 19,
+        scale: 4,
+    })
+    dppNilaiLain: number;
+
+    @Column({
+        name: 'PPN_12',
+        type: 'decimal',
+        precision: 19,
+        scale: 4,
+    })
+    ppn12: number;
+
+    @Column({
+        name: 'PPh_23',
+        type: 'decimal',
+        precision: 19,
+        scale: 4,
+    })
+    pph23: number;
+
+    @Column({
+        name: 'Total_tagihan',
+        type: 'decimal',
+        precision: 19,
+        scale: 4,
+    })
+    totalTagihan: number;
+
+    @Column({
+        name: 'bank_info',
+        type: 'jsonb',
+        nullable: true
+    })
+    bankInfo: BankInfo;
+
+    @Column({
+        name: 'SPK_id',
+        type: 'uuid',
+    })
+    spkId: string;
+
 } 
