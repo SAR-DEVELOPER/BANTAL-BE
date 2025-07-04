@@ -105,6 +105,127 @@ export class DocumentService {
   }
 
   /**
+   * Get all documents by document type shorthand
+   * @param shortHand The shorthand of the document type
+   * @returns List of documents with the specified document type
+   * @throws NotFoundException if document type with the specified shorthand is not found
+   */
+  async findByShortHand(shortHand: string): Promise<DocumentListDto[]> {
+    // First, verify that the document type exists
+    const documentType = await this.documentTypeRepository.findOne({
+      where: { shortHand }
+    });
+
+    if (!documentType) {
+      throw new NotFoundException(`Document type with shorthand "${shortHand}" not found`);
+    }
+
+    // Find all documents of this type
+    const documents = await this.masterDocumentListRepository.find({
+      where: { type: { shortHand } },
+      relations: ['type', 'createdBy', 'masterDivisionList', 'masterCompanyList'],
+    });
+
+    // Process documents and add type-specific fields
+    const documentDtos = await Promise.all(documents.map(async (doc) => {
+      const documentDto: DocumentListDto = {
+        // Basic document info
+        id: doc.id,
+        documentNumber: doc.documentNumber,
+        documentExternalNumber: doc.documentExternalNumber,
+        documentName: doc.documentName,
+        documentLegalDate: doc.documentLegalDate,
+        documentStatus: doc.documentStatus,
+        indexNumber: doc.indexNumber,
+        mongoDocumentId: doc.mongoDocumentId,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+
+        // Type info
+        documentType: doc.type?.typeName,
+        documentTypeId: doc.type?.id?.toString(),
+        documentTypeShortHand: doc.type?.shortHand,
+
+        // Related entities
+        createdById: doc.createdBy?.id,
+        createdByName: doc.createdBy?.name,
+        createdByEmail: doc.createdBy?.email,
+
+        divisionId: doc.masterDivisionList?.id,
+        divisionName: doc.masterDivisionList?.divisionName,
+        divisionCode: doc.masterDivisionList?.divisionCode,
+
+        companyId: doc.masterCompanyList?.id,
+        companyName: doc.masterCompanyList?.companyName,
+        companyCode: doc.masterCompanyList?.companyCode,
+      };
+
+      // Add type-specific fields based on shorthand
+      if (doc.type?.shortHand === 'Pwn' || doc.type?.shortHand === 'SP') {
+        const suratPenawaran = await this.suratPenawaranRepository.findOne({
+          where: { masterDocumentId: doc.id },
+          relations: ['personInCharge'],
+        });
+
+        if (suratPenawaran) {
+          documentDto.clientId = suratPenawaran.clientId;
+          documentDto.documentDescription = suratPenawaran.documentDescription;
+          documentDto.offeredService = suratPenawaran.offeredService;
+          documentDto.personInChargeId = suratPenawaran.personInChargeId;
+          documentDto.personInChargeName = suratPenawaran.personInCharge?.name;
+          documentDto.versionNumber = suratPenawaran.versionNumber;
+          documentDto.isLatest = suratPenawaran.isLatest;
+          documentDto.uploadedBy = suratPenawaran.uploadedBy;
+        }
+      }
+
+      if (doc.type?.shortHand === 'SPK') {
+        const suratPerjanjianKerja = await this.suratPerjanjianKerjaRepository.findOne({
+          where: { masterDocumentId: doc.id },
+        });
+
+        if (suratPerjanjianKerja) {
+          documentDto.clientId = suratPerjanjianKerja.clientId;
+          documentDto.documentDescription = suratPerjanjianKerja.documentDescription;
+          documentDto.startDate = suratPerjanjianKerja.startDate;
+          documentDto.endDate = suratPerjanjianKerja.endDate ?? undefined;
+          documentDto.projectFee = suratPerjanjianKerja.projectFee;
+          documentDto.paymentInstallment = suratPerjanjianKerja.paymentInstallment;
+          documentDto.isIncludeVAT = suratPerjanjianKerja.isIncludeVAT;
+          documentDto.versionNumber = suratPerjanjianKerja.versionNumber;
+          documentDto.isLatest = suratPerjanjianKerja.isLatest;
+          documentDto.uploadedBy = suratPerjanjianKerja.uploadedBy;
+        }
+      }
+
+      if (doc.type?.shortHand === 'TagNB') {
+        const suratTagihanNonBulanan = await this.suratTagihanNonBulananRepository.findOne({
+          where: { masterDocumentId: doc.id },
+        });
+
+        if (suratTagihanNonBulanan) {
+          documentDto.clientId = suratTagihanNonBulanan.clientId;
+          documentDto.documentDescription = suratTagihanNonBulanan.documentDescription;
+          documentDto.contractValue = suratTagihanNonBulanan.contractValue;
+          documentDto.dppNilaiLain = suratTagihanNonBulanan.dppNilaiLain;
+          documentDto.ppn12 = suratTagihanNonBulanan.ppn12;
+          documentDto.pph23 = suratTagihanNonBulanan.pph23;
+          documentDto.totalTagihan = suratTagihanNonBulanan.totalTagihan;
+          documentDto.bankInfo = suratTagihanNonBulanan.bankInfo;
+          documentDto.spkId = suratTagihanNonBulanan.spkId;
+          documentDto.versionNumber = suratTagihanNonBulanan.versionNumber;
+          documentDto.isLatest = suratTagihanNonBulanan.isLatest;
+          documentDto.uploadedBy = suratTagihanNonBulanan.uploadedBy;
+        }
+      }
+
+      return documentDto;
+    }));
+
+    return documentDtos;
+  }
+
+  /**
    * Find a document by ID
    * @param id Document UUID
    * @returns Document with the specified ID and its related entity data

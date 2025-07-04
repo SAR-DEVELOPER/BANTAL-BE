@@ -70,6 +70,17 @@ export class DocumentController {
   }
 
   /**
+   * Get all documents by document type shorthand
+   * @param shorthand The shorthand of the document type
+   * @returns List of documents with the specified document type
+   * @throws NotFoundException if document type with the specified shorthand is not found
+   */
+  @Get('list/:shorthand')
+  async findByShortHand(@Param('shorthand') shorthand: string): Promise<DocumentListDto[]> {
+    return this.documentService.findByShortHand(shorthand);
+  }
+
+  /**
    * Create a new document
    * @param documentType Document type name or shorthand
    * @param documentData Document data

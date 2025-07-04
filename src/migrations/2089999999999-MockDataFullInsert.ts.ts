@@ -51,7 +51,8 @@ export class MockDataFullInsert2099999999999 implements MigrationInterface {
             INSERT INTO document_schema.document_type (created_at, updated_at, is_active, id, type_name, shorthand)
             VALUES
             (now(), now(), true, nextval('document_schema.document_type_id_seq'::regclass), 'Surat Penawaran', 'Pwn'),
-            (now(), now(), true, nextval('document_schema.document_type_id_seq'::regclass), 'Surat Perjanjian Kerja', 'SPK');
+            (now(), now(), true, nextval('document_schema.document_type_id_seq'::regclass), 'Surat Perjanjian Kerja', 'SPK'),
+            (now(), now(), true, nextval('document_schema.document_type_id_seq'::regclass), 'Surat Tagihan Non Bulanan', 'TagNB');
         `);
     }
 

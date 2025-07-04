@@ -23,6 +23,25 @@ Specific Document Types (SuratPenawaran, SPK, TagNB, etc.)
 
 ## Step-by-Step Guide to Add a New Document Type
 
+### 0. Add Document Type to Database FIRST ⚠️
+
+**CRITICAL FIRST STEP**: Before creating any code files, you MUST add the document type record to the database:
+
+```sql
+INSERT INTO document_schema.document_type (type_name, shorthand, created_at, updated_at) 
+VALUES ('{Document Type Name}', '{SHORT_HAND}', NOW(), NOW());
+```
+
+**Example:**
+```sql
+INSERT INTO document_schema.document_type (type_name, shorthand, created_at, updated_at) 
+VALUES ('Surat Tagihan Non Bulanan', 'TagNB', NOW(), NOW());
+```
+
+> ⚠️ **IMPORTANT**: The document type record MUST exist in the database before creating entities and services. The system validates document creation requests against this table, and missing entries will cause runtime errors.
+
+> 💡 **TIP**: Choose a meaningful shorthand (3-5 characters) as it will be used in API endpoints like `POST /documents/createV2/{SHORT_HAND}` and `POST /documents/finalizeV2/{SHORT_HAND}`.
+
 ### 1. Create the Entity
 
 **Location**: `src/modules/document/core/entities/documentType/`
@@ -567,16 +586,7 @@ export class Add{DocumentName}DocumentType{timestamp} implements MigrationInterf
 }
 ```
 
-### 10. Add Document Type to Database
-
-Insert the new document type into the `document_type` table:
-
-```sql
-INSERT INTO document_schema.document_type (type_name, shorthand, created_at, updated_at) 
-VALUES ('{Document Type Name}', '{SHORT_HAND}', NOW(), NOW());
-```
-
-### 11. Optional: Create Specific Controller (if needed)
+### 10. Optional: Create Specific Controller (if needed)
 
 If you need document-type-specific endpoints beyond the generic CRUD:
 
@@ -611,7 +621,10 @@ Don't forget to register the controller in `DocumentModule`!
 
 ## File Checklist
 
-When adding a new document type, ensure you've updated these files:
+When adding a new document type, ensure you've completed these steps in order:
+
+### CRITICAL FIRST STEP:
+- [ ] **Insert document type record into `document_type` table** *(MUST BE DONE FIRST!)*
 
 ### Required Files:
 - [ ] `src/modules/document/core/entities/documentType/{document-name}.entity.ts` *(NEW)*
@@ -629,7 +642,6 @@ When adding a new document type, ensure you've updated these files:
 
 ### Database Updates:
 - [ ] Run migration to create table
-- [ ] Insert document type record into `document_type` table
 
 ## Naming Conventions
 
