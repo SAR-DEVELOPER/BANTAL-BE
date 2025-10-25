@@ -54,6 +54,10 @@ export class DocumentService {
     private readonly documentModel: Model<MongoDocument>
   ) {}
 
+  async createMasterDocumentV2(requestData: DocumentCreateDto): Promise<MasterDocumentList> {
+    return this.masterDocumentListRepository.save(requestData);
+  }
+
   getHello(): any {
     return { message: 'Hello from DocumentService!' };
   }

@@ -17,6 +17,13 @@ export class CreateDocumentController {
     private readonly connection: Connection
   ) {}
 
+  @Post('master-document')
+  async createMasterDocumentV2(
+    @Body() requestData: DocumentCreateDto,
+  ): Promise<MasterDocumentList> {
+    return this.documentService.createMasterDocumentV2(requestData);
+  }
+
   /**
    * Create a new document with integrated type-specific handling
    * @param documentType Document type name or shorthand

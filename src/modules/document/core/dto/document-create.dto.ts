@@ -6,6 +6,7 @@ export class DocumentCreateDto {
   documentNumber: string;
 
   @IsString()
+  @IsOptional()
   documentExternalNumber: string;
 
   @IsString()

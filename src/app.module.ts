@@ -16,6 +16,7 @@ import { DevModule } from './modules/dev/dev.module';
 import { PekerjaanModule } from './modules/pekerjaan-NB/pekerjaan.module';
 import { ClientModule } from './modules/client/client.module';
 import { PaymentModule } from './modules/payment/payment.module';
+import { SuratTugasModule } from './modules/surat-tugas/surat-tugas.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentModule } from './modules/payment/payment.module';
     PekerjaanModule,
     ClientModule,
     PaymentModule,
+    SuratTugasModule,
   ],
   controllers: [AppController],
   providers: [AppService],
