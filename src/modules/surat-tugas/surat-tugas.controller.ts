@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, ParseUUIDPipe } from '@nestjs/common';
 import { SuratTugasService } from './surat-tugas.service';
 import { CreateSuratTugasDto } from './dto/create-surat-tugas.dto';
 import { SuratTugas } from 'src/entities/surat-tugas.entity';
@@ -18,6 +18,11 @@ export class SuratTugasController {
   @Get('get-all')
   async getAll(): Promise<SuratTugas[]> {
     return this.suratTugasService.getAll();
+  }
+
+  @Get('get-by-id/:id')
+  async getById(@Param('id', ParseUUIDPipe) id: string): Promise<SuratTugas> {
+    return this.suratTugasService.getById(id);
   }
 
   //@Get('get-by-id/:id')

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SuratTugas } from 'src/entities/surat-tugas.entity';
@@ -63,6 +63,21 @@ export class SuratTugasService {
         'signer',
       ],
     });
+  }
+
+  async getById(id: string): Promise<SuratTugas> {
+    const suratTugas = await this.suratTugasRepository.findOne({
+      where: { id },
+      relations: [
+        'masterDocumentList',
+        'client',
+        'signer',
+      ],
+    });
+    if (!suratTugas) {
+      throw new NotFoundException('Surat Tugas not found');
+    }
+    return suratTugas;
   }
 
   async currentNumber(month: number, year: number): Promise<string> {
