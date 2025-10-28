@@ -55,6 +55,16 @@ export class SuratTugasService {
     return suratTugas;
   }
 
+  async getAll(): Promise<SuratTugas[]> {
+    return this.suratTugasRepository.find({
+      relations: [
+        'masterDocumentList',
+        'client',
+        'signer',
+      ],
+    });
+  }
+
   async currentNumber(month: number, year: number): Promise<string> {
     const count = await this.suratTugasRepository
       .createQueryBuilder('surat_tugas')

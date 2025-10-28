@@ -15,10 +15,10 @@ export class SuratTugasController {
     };
   }
 
-  //@Get('get-all')
-  //async getAll(): Promise<SuratTugas[]> {
-  //  return this.suratTugasService.getAll();
-  //}
+  @Get('get-all')
+  async getAll(): Promise<SuratTugas[]> {
+    return this.suratTugasService.getAll();
+  }
 
   //@Get('get-by-id/:id')
   //async getById(@Param('id', ParseUUIDPipe) id: string): Promise<SuratTugas> {
@@ -43,21 +43,11 @@ export class SuratTugasController {
     if (year) {
       yearNum = parseInt(year, 10);
     }
-    console.log("---------------------------------monthNum---------------------------------");
-    console.log(month);
-    console.log(monthNum);
-    console.log("---------------------------------yearNum---------------------------------");
-    console.log(year);
-    console.log(yearNum);
-    console.log("---------------------------------monthNum---------------------------------");
     return this.suratTugasService.currentNumber(monthNum, yearNum);
   }
 
   @Post('create')
   async create(@Body() createSuratTugasDto: CreateSuratTugasDto): Promise<SuratTugas> {
-    console.log("---------------------------------createSuratTugasDto---------------------------------");
-    console.log(createSuratTugasDto);
-    console.log("---------------------------------createSuratTugasDto---------------------------------");
     return this.suratTugasService.create(createSuratTugasDto);
   }
 }
