@@ -2,6 +2,10 @@ import { Type } from 'class-transformer';
 import { IsString, IsDate, IsUUID, IsNotEmpty, IsArray } from 'class-validator';
 
 export class CreateSuratTugasDto {
+  @IsUUID()
+  @IsNotEmpty()
+  masterDocumentListId: string;
+
   @IsString()
   @IsNotEmpty()
   namaPekerjaan: string;
@@ -35,7 +39,7 @@ export class CreateSuratTugasDto {
   @IsUUID()
   @IsNotEmpty()
   signerId: string;
-  
+
   @IsDate()
   @Type(() => Date)
   @IsNotEmpty()
@@ -44,5 +48,9 @@ export class CreateSuratTugasDto {
   @IsString()
   @IsNotEmpty()
   createdBy: string;
-  
+
+  @IsArray()
+  @IsNotEmpty()
+  timPenugasan: string[];
+
 }

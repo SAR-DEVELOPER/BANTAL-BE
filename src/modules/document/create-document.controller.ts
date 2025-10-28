@@ -22,7 +22,7 @@ export class CreateDocumentController {
     @Body() requestData: DocumentCreateDto,
   ): Promise<MasterDocumentList> {
     return this.documentService.createMasterDocumentV2(requestData);
-  }
+  } 
 
   /**
    * Create a new document with integrated type-specific handling

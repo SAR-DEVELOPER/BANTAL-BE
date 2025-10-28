@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query } from '@nestjs/common';
 import { SuratTugasService } from './surat-tugas.service';
 import { CreateSuratTugasDto } from './dto/create-surat-tugas.dto';
 import { SuratTugas } from 'src/entities/surat-tugas.entity';
@@ -15,9 +15,49 @@ export class SuratTugasController {
     };
   }
 
+  //@Get('get-all')
+  //async getAll(): Promise<SuratTugas[]> {
+  //  return this.suratTugasService.getAll();
+  //}
+
+  //@Get('get-by-id/:id')
+  //async getById(@Param('id', ParseUUIDPipe) id: string): Promise<SuratTugas> {
+  //  return this.suratTugasService.getById(id);
+  //}
+
+  //@Get('get-by-master-document-list-id/:masterDocumentListId')
+  //async getByMasterDocumentListId(@Param('masterDocumentListId', ParseUUIDPipe) masterDocumentListId: string): Promise<SuratTugas[]> {
+  //  return this.suratTugasService.getByMasterDocumentListId(masterDocumentListId);
+  //}
+
+  @Get('current-number')
+  async index(@Query('month') month?: string, @Query('year') year?: string): Promise<string> {
+    const now = new Date();
+    let monthNum: number = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+    let yearNum: number = now.getFullYear();
+
+    // Override with provided parameters if they exist
+    if (month) {
+      monthNum = parseInt(month, 10);
+    }
+    if (year) {
+      yearNum = parseInt(year, 10);
+    }
+    console.log("---------------------------------monthNum---------------------------------");
+    console.log(month);
+    console.log(monthNum);
+    console.log("---------------------------------yearNum---------------------------------");
+    console.log(year);
+    console.log(yearNum);
+    console.log("---------------------------------monthNum---------------------------------");
+    return this.suratTugasService.currentNumber(monthNum, yearNum);
+  }
+
   @Post('create')
   async create(@Body() createSuratTugasDto: CreateSuratTugasDto): Promise<SuratTugas> {
+    console.log("---------------------------------createSuratTugasDto---------------------------------");
     console.log(createSuratTugasDto);
+    console.log("---------------------------------createSuratTugasDto---------------------------------");
     return this.suratTugasService.create(createSuratTugasDto);
   }
 }
