@@ -1,5 +1,15 @@
 import { Type } from 'class-transformer';
-import { IsString, IsDate, IsUUID, IsNotEmpty, IsArray } from 'class-validator';
+import { IsString, IsDate, IsUUID, IsNotEmpty, IsArray, ValidateNested } from 'class-validator';
+
+class TimPenugasanDto {
+  @IsUUID()
+  @IsNotEmpty()
+  personnelId: string;
+
+  @IsString()
+  @IsNotEmpty()
+  role: string;
+}
 
 export class CreateSuratTugasDto {
   @IsUUID()
@@ -50,7 +60,9 @@ export class CreateSuratTugasDto {
   createdBy: string;
 
   @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => TimPenugasanDto)
   @IsNotEmpty()
-  timPenugasan: string[];
+  timPenugasan: TimPenugasanDto[];
 
 }

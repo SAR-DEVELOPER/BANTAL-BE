@@ -53,6 +53,9 @@ export class SuratTugasController {
 
   @Post('create')
   async create(@Body() createSuratTugasDto: CreateSuratTugasDto): Promise<SuratTugas> {
+    console.log('============createSuratTugasDto============');
+    console.log(createSuratTugasDto);
+    console.log('============createSuratTugasDto============');
     return this.suratTugasService.create(createSuratTugasDto);
   }
 }

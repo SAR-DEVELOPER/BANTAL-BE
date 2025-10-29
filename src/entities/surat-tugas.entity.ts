@@ -1,9 +1,10 @@
-import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { BaseVersionedDocument } from 'src/modules/document/core/entities/base-versioned-document.entity';
 import { Schemas } from 'src/config/schema.config';
 import { MasterClientList } from './master-client-list.entity';
 import { Identity } from '@modules/identity/core/entities/identity.entity';
 import { MasterDocumentList } from '@modules/document/core/entities/master-document-list.entity';
+import { TimPenugasan } from './tim-penugasan.entity';
 
 @Entity('surat_tugas', { schema: Schemas.DOCUMENT })
 export class SuratTugas {
@@ -54,4 +55,7 @@ export class SuratTugas {
 
   @Column({ name: 'updated_by' })
   updatedBy: string;
+
+  @OneToMany(() => TimPenugasan, (timPenugasan) => timPenugasan.suratTugas)
+  timPenugasan: TimPenugasan[];
 }

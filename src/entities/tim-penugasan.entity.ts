@@ -5,7 +5,11 @@ import { SuratTugas } from './surat-tugas.entity';
 import { Identity } from '@modules/identity/core/entities/identity.entity';
 
 @Entity('tim_penugasan', { schema: Schemas.DOCUMENT })
-export class TimPenugasan extends BaseVersionedDocument {
+export class TimPenugasan {
+
+    @PrimaryGeneratedColumn('uuid')
+    id: string;
+
     @ManyToOne(() => SuratTugas, { nullable: false })
     @JoinColumn({ name: 'surat_tugas_id' })
     suratTugas: SuratTugas;

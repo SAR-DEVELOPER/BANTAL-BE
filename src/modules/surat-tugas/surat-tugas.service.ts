@@ -5,6 +5,7 @@ import { SuratTugas } from 'src/entities/surat-tugas.entity';
 import { CreateSuratTugasDto } from './dto/create-surat-tugas.dto';
 import { MasterDocumentList } from '@modules/document/core/entities/master-document-list.entity';
 import { DocumentStatus } from '@modules/document/core/enums/document-status.enum';
+import { TimPenugasan } from 'src/entities/tim-penugasan.entity';
 
 @Injectable()
 export class SuratTugasService {
@@ -13,6 +14,8 @@ export class SuratTugasService {
     private suratTugasRepository: Repository<SuratTugas>,
     @InjectRepository(MasterDocumentList)
     private masterDocumentListRepository: Repository<MasterDocumentList>,
+    @InjectRepository(TimPenugasan)
+    private timPenugasanRepository: Repository<TimPenugasan>,
   ) {}
 
   async create(createSuratTugasDto: CreateSuratTugasDto): Promise<SuratTugas> {
@@ -46,12 +49,22 @@ export class SuratTugasService {
       updatedBy: createSuratTugasDto.createdBy,
     };
 
-    console.log("---------------------------------data---------------------------------");
-    console.log(data);
-    console.log("---------------------------------data---------------------------------");
-
     const suratTugas = await this.suratTugasRepository.save(data);
     console.log(suratTugas);
+
+    if(suratTugas && createSuratTugasDto.timPenugasan) {
+      const timPenugasanPromises = createSuratTugasDto.timPenugasan.map(async (tim) => {
+        const timPenugasan = this.timPenugasanRepository.create({
+          suratTugas: { id: suratTugas.id },
+          personnel: { id: tim.personnelId },
+          role: tim.role,
+          createdAt: new Date(),
+        });
+        return await this.timPenugasanRepository.save(timPenugasan);
+      });
+      await Promise.all(timPenugasanPromises);
+    }
+    
     return suratTugas;
   }
 
@@ -61,6 +74,8 @@ export class SuratTugasService {
         'masterDocumentList',
         'client',
         'signer',
+        'timPenugasan',
+        'timPenugasan.personnel',
       ],
     });
   }
@@ -72,6 +87,8 @@ export class SuratTugasService {
         'masterDocumentList',
         'client',
         'signer',
+        'timPenugasan',
+        'timPenugasan.personnel',
       ],
     });
     if (!suratTugas) {
