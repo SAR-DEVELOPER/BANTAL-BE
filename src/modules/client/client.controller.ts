@@ -1,7 +1,8 @@
-import { Controller, Get, Param, NotFoundException, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Param, NotFoundException, ParseIntPipe, Post, Body } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { MasterClientList } from 'src/entities/master-client-list.entity';
 import { ClientType } from 'src/entities/client-type.entity';
+import { CreateClientDto } from './dto/client.dto';
 
 @Controller('clients')
 export class ClientController {
@@ -59,5 +60,11 @@ export class ClientController {
       }
       throw new NotFoundException(`Client type with ID "${id}" not found`);
     }
+  }
+
+  @Post('create')
+  async createClient(@Body() createClientDto: CreateClientDto): Promise<MasterClientList> {
+    console.log(createClientDto);
+    return this.clientService.createClient(createClientDto);
   }
 } 

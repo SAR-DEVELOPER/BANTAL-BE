@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MasterClientList } from 'src/entities/master-client-list.entity';
 import { ClientType } from 'src/entities/client-type.entity';
+import { CreateClientDto } from './dto/client.dto';
 
 @Injectable()
 export class ClientService {
@@ -66,5 +67,25 @@ export class ClientService {
     }
 
     return clientType;
+  }
+
+  async createClient(createClientDto: CreateClientDto): Promise<MasterClientList> {
+    // Verify that the client type exists
+    const clientType = await this.clientTypeRepository.findOne({
+      where: { id: parseInt(createClientDto.typeId) },
+    });
+
+    if (!clientType) {
+      throw new NotFoundException(`Client type with ID "${createClientDto.typeId}" not found`);
+    }
+
+    // Create the client with the relationship properly set
+    const client = this.masterClientListRepository.create({
+      name: createClientDto.name,
+      group: createClientDto.group,
+      type: clientType,
+    });
+
+    return this.masterClientListRepository.save(client);
   }
 } 

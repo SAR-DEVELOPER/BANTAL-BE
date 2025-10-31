@@ -22,16 +22,16 @@ export class MasterClientList {
   @JoinColumn({ name: 'type_id' })
   type: ClientType;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   contact_name: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   contact_position: string;
 
-  @Column({ type: 'varchar', length: 255 })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   contact_email: string;
 
-  @Column({ type: 'varchar', length: 50 })
+  @Column({ type: 'varchar', length: 50, nullable: true })
   contact_phone: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
