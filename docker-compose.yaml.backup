@@ -34,8 +34,8 @@ services:
   keycloak-postgres:
     image: postgres:17
     container_name: keycloak-postgres
-    # ports:
-    #   - "5433:5432"  # Removed for security - use docker exec or PgAdmin to access
+    ports:
+      - "5433:5432"
     environment:
       POSTGRES_USER: keycloak_db_user
       POSTGRES_PASSWORD: JalanCipunagara25!
@@ -53,8 +53,8 @@ services:
   postgres:
     image: postgres:17
     container_name: postgres-db
-    # ports:
-    #   - "5434:5432"  # Removed for security - use docker exec or PgAdmin to access
+    ports:
+      - "5434:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: JalanCipunagara25!
@@ -73,8 +73,8 @@ services:
   mongo:
     image: mongo:6
     container_name: mongo-db
-    # ports:
-    #   - "27017:27017"  # Removed for security - use docker exec or Mongo Express to access
+    ports:
+      - "27017:27017"
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s

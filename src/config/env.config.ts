@@ -10,7 +10,7 @@ export default registerAs<AppConfig>('config', () => ({
   // Database - PostgreSQL
   database: {
     host: process.env.DB_HOST || 'localhost',
-    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5434,
+    port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5432,
     username: process.env.DB_USERNAME || 'bantal_db_user',
     password: process.env.DB_PASSWORD || 'JalanCipunagara25!',
     name: process.env.DB_DATABASE || 'bantal_db',
