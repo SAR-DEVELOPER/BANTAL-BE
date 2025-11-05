@@ -216,8 +216,6 @@ volumes:
     driver: local
   mongo-data:
     driver: local
-  pgadmin-data:
-    driver: local
   kong-postgres-data:
     driver: local
   caddy_data:
