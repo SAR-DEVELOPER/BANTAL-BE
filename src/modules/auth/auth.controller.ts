@@ -32,18 +32,22 @@ export class AuthController {
     @Query('code') code: string,
     @Res() res: Response
   ) {
+    console.log('Callback called');
+    console.log('code', code);
     if (!code) {
       throw new InternalServerErrorException('Missing authorization code');
     }
 
     try {
+      console.log('Exchanging code for tokens');
       const tokens = await this.authService.exchangeCodeForTokens(code);
-
+      console.log('Tokens exchanged');
+      console.log('tokens', tokens);
       const cookieOptions = {
         httpOnly: true,
         secure: true,
         sameSite: 'none' as const,
-        domain: '.will-soon.com',
+        domain: '.centri.id',
         path: '/',
       };
 
@@ -59,7 +63,7 @@ export class AuthController {
       });
 
       // Redirect back to frontend
-      const redirectUri = this.configService.get<string>('AUTH_REDIRECT_URI') || 'https://will-soon.com/dashboard/landing';
+      const redirectUri = this.configService.get<string>('AUTH_REDIRECT_URI') || 'https://web.centri.id/dashboard/landing';
       return res.redirect(redirectUri);
     } catch (err) {
       console.error('Failed to handle /auth/callback:', err);
@@ -94,7 +98,7 @@ export class AuthController {
         secure: true, // Always true for cross-site cookies
         sameSite: 'none' as const,
         path: '/',
-        domain: '.will-soon.com',
+        domain: '.web.centri.id',
       };
 
       // Set new access token
@@ -122,7 +126,7 @@ export class AuthController {
     const token = req.cookies?.['auth_session'];
     const jwt = require('jsonwebtoken');
     const decoded = jwt.decode(token) as any;
-
+    console.log('decoded', decoded);
     return {
       // JWT token information
       jwt: {
@@ -210,7 +214,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none' as const,
-      domain: '.will-soon.com',
+      domain: '.web.centri.id',
       path: '/',
     };
 
@@ -221,7 +225,7 @@ export class AuthController {
     // 2. Optional: redirect to Keycloak logout endpoint
     const keycloakUrl = this.keycloakUrlHelper.getKeycloakUrl();
     const realm = this.keycloakUrlHelper.getKeycloakRealm();
-    const logoutUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://www.will-soon.com/')}`;
+    const logoutUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://web.centri.id/')}`;
     return res.redirect(logoutUrl);
   }
 

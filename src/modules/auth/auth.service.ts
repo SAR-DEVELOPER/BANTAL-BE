@@ -13,11 +13,16 @@ export class AuthService {
   ) {}
 
   async exchangeCodeForTokens(code: string): Promise<TokenResponse> {
+    console.log('Exchanging code for tokens function called');
+    console.log('code', code);
     const tokenEndpoint = this.configService.get<string>('KEYCLOAK_TOKEN_ENDPOINT') as string;
     const clientId = this.configService.get<string>('KEYCLOAK_CLIENT_ID') as string;
     const clientSecret = this.configService.get<string>('KEYCLOAK_CLIENT_SECRET') as string;
     const redirectUri = this.configService.get<string>('KEYCLOAK_REDIRECT_URI') as string;
-  
+    console.log('tokenEndpoint', tokenEndpoint);
+    console.log('clientId', clientId);
+    console.log('clientSecret', clientSecret);
+    console.log('redirectUri', redirectUri);
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
       code,

@@ -17,10 +17,11 @@ services:
       KC_DB_PASSWORD: JalanCipunagara25!
 
       # Modern hostname config (no legacy proxy!)
-      KC_HOSTNAME: https://auth.process.will-soon.com
-      KC_PROXY: edge
+      KC_HOSTNAME: https://auth.centri.id
       KC_HOSTNAME_STRICT: true
       KC_HTTP_ENABLED: true
+      KC_PROXY_HEADERS: xforwarded
+      KC_PROXY: edge
 
     ports:
       - "8082:8080"
@@ -53,8 +54,8 @@ services:
   postgres:
     image: postgres:17
     container_name: postgres-db
-    # ports:
-    #   - "5434:5432"  # Removed for security - use docker exec or PgAdmin to access
+    ports:
+      - "5434:5432"  # Removed for security - use docker exec or PgAdmin to access
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: JalanCipunagara25!
@@ -73,13 +74,16 @@ services:
   mongo:
     image: mongo:6
     container_name: mongo-db
-    # ports:
-    #   - "27017:27017"  # Removed for security - use docker exec or Mongo Express to access
+    ports:
+      - "27017:27017"  # Removed for security - use docker exec or Mongo Express to access
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 5
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo_admin
+      - MONGO_INITDB_ROOT_PASSWORD=JalanCipunagara25!
     volumes:
       - mongo-data:/data/db
     networks:
