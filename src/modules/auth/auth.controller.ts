@@ -47,7 +47,7 @@ export class AuthController {
         httpOnly: true,
         secure: true,
         sameSite: 'none' as const,
-        domain: '.centri.id',
+        domain: process.env.PARENT_HOSTNAME,
         path: '/',
       };
 
@@ -63,7 +63,7 @@ export class AuthController {
       });
 
       // Redirect back to frontend
-      const redirectUri = this.configService.get<string>('AUTH_REDIRECT_URI') || 'https://web.centri.id/dashboard/landing';
+      const redirectUri = this.configService.get<string>('AUTH_REDIRECT_URI') || process.env.FRONT_END_HOSTNAME + '/dashboard/landing';
       return res.redirect(redirectUri);
     } catch (err) {
       console.error('Failed to handle /auth/callback:', err);
@@ -98,7 +98,7 @@ export class AuthController {
         secure: true, // Always true for cross-site cookies
         sameSite: 'none' as const,
         path: '/',
-        domain: '.web.centri.id',
+        domain: process.env.PARENT_HOSTNAME,
       };
 
       // Set new access token
@@ -214,7 +214,7 @@ export class AuthController {
       httpOnly: true,
       secure: true,
       sameSite: 'none' as const,
-      domain: '.web.centri.id',
+      domain: process.env.PARENT_HOSTNAME,
       path: '/',
     };
 
@@ -225,7 +225,8 @@ export class AuthController {
     // 2. Optional: redirect to Keycloak logout endpoint
     const keycloakUrl = this.keycloakUrlHelper.getKeycloakUrl();
     const realm = this.keycloakUrlHelper.getKeycloakRealm();
-    const logoutUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent('https://web.centri.id/')}`;
+    const logoutRedirectUri = this.configService.get<string>('FRONT_END_HOSTNAME') || process.env.FRONT_END_HOSTNAME + '/dashboard/landing';
+    const logoutUrl = `${keycloakUrl}/realms/${realm}/protocol/openid-connect/logout?redirect_uri=${encodeURIComponent(logoutRedirectUri)}`;
     return res.redirect(logoutUrl);
   }
 

@@ -25,7 +25,7 @@ async function bootstrap() {
   app.use(cookieParser()); 
 
   app.enableCors({
-    origin: ['https://will-soon.com', 'https://www.will-soon.com'],
+    origin: [process.env.NEXT_PUBLIC_API_URL],
     credentials: true,
   });
 
