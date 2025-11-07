@@ -186,6 +186,14 @@ services:
       # Keycloak
       - KEYCLOAK_HOST=keycloak
       - KEYCLOAK_PORT=8080
+      - KEYCLOAK_REALM=BANTAL
+      # CORS Configuration
+      - CORS_ORIGINS=https://web.centri.id,https://www.web.centri.id
+      # Frontend URLs
+      - FRONT_END_HOSTNAME=https://web.centri.id/
+      - AUTH_REDIRECT_URI=https://web.centri.id/dashboard/landing
+      # Cookie Configuration
+      - COOKIE_DOMAIN=.centri.id
       # Other env variables as needed
     ports:
       - "4000:4000"

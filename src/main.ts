@@ -17,16 +17,32 @@ declare module 'express' {
 async function bootstrap() {
   // Enable debug logs by setting this environment variable
   process.env.LOG_LEVEL = 'debug';
-  
+
   const app = await NestFactory.create(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'], // Include all log levels
   });
 
-  app.use(cookieParser()); 
+  app.use(cookieParser());
+
+  // Trust proxy (important for HTTPS behind Caddy)
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.set('trust proxy', 1);
+
+  // CORS configuration
+  const allowedOrigins = process.env.CORS_ORIGINS
+    ? process.env.CORS_ORIGINS.split(',')
+    : [
+      'https://web.centri.id',
+      'https://www.web.centri.id',
+      'http://localhost:3000', // For local development
+    ];
 
   app.enableCors({
-    origin: [process.env.NEXT_PUBLIC_API_URL],
+    origin: allowedOrigins,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    exposedHeaders: ['Set-Cookie'],
   });
 
   const port = process.env.PORT ?? 4000;
@@ -35,5 +51,6 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   logger.log(`Application is running on: http://localhost:${port}`);
   logger.log(`Server is listening on 0.0.0.0:${port}`);
+  logger.log(`CORS enabled for origins: ${allowedOrigins.join(', ')}`);
 }
 bootstrap();
