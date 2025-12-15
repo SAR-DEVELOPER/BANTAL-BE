@@ -8,6 +8,8 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
+  Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { MeetingService } from './meeting.service';
 import { CreateMeetingDto } from './dto/create-meeting.dto';
@@ -17,9 +19,12 @@ import { Meeting } from './entities/meeting.entity';
 import { MeetingAccount } from './entities/meeting-account.entity';
 import { UpdateHostKeyDto } from './dto/update-host-key.dto';
 import { HostKey } from './entities/host-key.entity';
+import { SyncForwardDto } from './dto/sync-forward.dto';
 
 @Controller('meeting')
 export class MeetingController {
+  private readonly logger = new Logger(MeetingController.name);
+
   constructor(private readonly meetingService: MeetingService) { }
 
   /**
@@ -78,6 +83,33 @@ export class MeetingController {
     return this.meetingService.getHostKey();
   }
 
+  @Post('scheduler/sync-forward')
+  async syncForward(@Body() body: any): Promise<void> {
+    this.logger.debug('Received sync-forward request body:', JSON.stringify(body, null, 2));
+
+    // Validate the body structure
+    if (!body) {
+      throw new BadRequestException('Request body is required');
+    }
+
+    if (!body.accountId && !body.accountID) {
+      throw new BadRequestException('accountId is required');
+    }
+
+    if (!body.meetings || !Array.isArray(body.meetings)) {
+      throw new BadRequestException('meetings must be an array');
+    }
+
+    // Normalize accountId field
+    const syncForwardDto: SyncForwardDto = {
+      accountId: body.accountId || body.accountID,
+      meetings: body.meetings,
+    };
+
+    this.logger.debug(`Processing ${syncForwardDto.meetings.length} meetings for account: ${syncForwardDto.accountId}`);
+
+    return this.meetingService.syncForward(syncForwardDto);
+  }
 
   /**
    * Update a meeting

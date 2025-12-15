@@ -50,6 +50,7 @@ services:
       retries: 5
     networks:
       - backend-network
+    restart: unless-stopped
 
   postgres:
     image: postgres:17
@@ -70,7 +71,7 @@ services:
       retries: 5
     networks:
       - backend-network
-
+    restart: unless-stopped
   mongo:
     image: mongo:6
     container_name: mongo-db
@@ -88,7 +89,7 @@ services:
       - mongo-data:/data/db
     networks:
       - backend-network
-
+    restart: unless-stopped
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n

@@ -14,6 +14,7 @@ import { UpdateParticipantsDto } from './dto/update-participants.dto';
 import { MeetingAccount } from './entities/meeting-account.entity';
 import { UpdateHostKeyDto } from './dto/update-host-key.dto';
 import { HostKey } from './entities/host-key.entity';
+import { SyncForwardDto } from './dto/sync-forward.dto';
 
 @Injectable()
 export class MeetingService {
@@ -109,6 +110,39 @@ export class MeetingService {
 
       n8nResult = await n8nResponse.json().catch(() => ({}));
       this.logger.debug(`n8n webhook response: ${JSON.stringify(n8nResult)}`);
+
+      // Check if response is an array first (successful response)
+      if (Array.isArray(n8nResult)) {
+        // Extract the first meeting from the array (n8n returns array of meetings)
+        if (n8nResult.length === 0) {
+          throw new BadRequestException('n8n webhook returned an empty array');
+        }
+        n8nResult = n8nResult[0];
+      } else if (n8nResult && typeof n8nResult === 'object') {
+        // Check for overlapping schedule error (only for non-array objects)
+        if (n8nResult.error) {
+          if (n8nResult.error === 'overlapping schedule, schedule have been updated, please retry') {
+            this.logger.warn('Overlapping schedule detected, user needs to retry');
+            throw new BadRequestException({
+              message: 'overlapping schedule, schedule have been updated, please retry',
+              error: 'SCHEDULE_OVERLAP',
+              statusCode: 400,
+            });
+          }
+          // If it's a different error object, treat as general error
+          throw new BadRequestException(
+            `n8n webhook returned an error: ${n8nResult.error}`
+          );
+        }
+        // Single object response (successful) - use it directly
+        this.logger.debug('n8n returned a single meeting object');
+      } else {
+        // Invalid response format
+        this.logger.error(`Unexpected n8n response format: ${JSON.stringify(n8nResult)}`);
+        throw new BadRequestException(
+          'Unexpected response format from n8n webhook. Expected an array of meetings or a meeting object.'
+        );
+      }
     } catch (error) {
       if (error instanceof BadRequestException) {
         throw error;
@@ -129,7 +163,7 @@ export class MeetingService {
       joinUrl: n8nResult.joinUrl || null,
       password: n8nResult.password || null,
       requestedById: createMeetingDto.requestedById || null,
-      zoomId: n8nResult.zoomId || null,
+      zoomId: n8nResult.zoomId ? n8nResult.zoomId.toString() : null,
       hostId: createMeetingDto.hostId || null,
       internalAttendantIds: createMeetingDto.internalAttendants || [],
       emailAttendants: createMeetingDto.emailAttendants || [],
@@ -372,5 +406,85 @@ export class MeetingService {
 
     return hostKey;
   }
+
+  async syncForward(syncForwardDto: SyncForwardDto): Promise<void> {
+    this.logger.debug(`Syncing forward for account: ${syncForwardDto.accountId}`);
+    this.logger.debug(`Received ${syncForwardDto.meetings.length} meetings`);
+
+    // Filter for type 2 meetings only
+    const type2Meetings = syncForwardDto.meetings.filter(meeting => meeting.type === 2);
+    this.logger.debug(`Filtered to ${type2Meetings.length} type 2 meetings`);
+
+    if (type2Meetings.length === 0) {
+      this.logger.debug('No type 2 meetings to process');
+      return;
+    }
+
+    // Get all existing zoomIds from database
+    const existingMeetings = await this.meetingRepository.find({
+      select: ['zoomId'],
+    });
+    const existingZoomIds = new Set(
+      existingMeetings
+        .map(m => m.zoomId)
+        .filter((id): id is string => id !== null)
+        .map(id => id.toString())
+    );
+    this.logger.debug(`Found ${existingZoomIds.size} existing meetings in database`);
+
+    // Find admin identity by email
+    const adminIdentity = await this.identityRepository.findOne({
+      where: { email: 'admin@sar-consulting.co.id' },
+    });
+
+    if (!adminIdentity) {
+      throw new NotFoundException('Admin identity with email admin@sar-consulting.co.id not found');
+    }
+    this.logger.debug(`Found admin identity: ${adminIdentity.id}`);
+
+    // Use accountId from request as hostId
+    const hostId = syncForwardDto.accountId;
+    this.logger.debug(`Using accountId as hostId: ${hostId}`);
+
+    // Filter out meetings that already exist
+    const newMeetings = type2Meetings.filter(
+      meeting => {
+        const zoomIdStr = typeof meeting.id === 'number' ? meeting.id.toString() : meeting.id;
+        return !existingZoomIds.has(zoomIdStr);
+      }
+    );
+    this.logger.debug(`Found ${newMeetings.length} new meetings to create`);
+
+    if (newMeetings.length === 0) {
+      this.logger.debug('No new meetings to create');
+      return;
+    }
+
+    // Create new meeting records
+    const meetingsToCreate = newMeetings.map(meeting => {
+      const startTime = meeting.start_time ? new Date(meeting.start_time) : new Date();
+      const endTime = new Date(startTime.getTime() + meeting.duration * 60 * 1000);
+
+      const zoomIdStr = typeof meeting.id === 'number' ? meeting.id.toString() : meeting.id;
+
+      return this.meetingRepository.create({
+        meetingTitle: meeting.topic || 'Untitled Meeting',
+        timeStart: startTime,
+        timeEnd: endTime,
+        zoomId: zoomIdStr,
+        joinUrl: meeting.join_url || null,
+        password: meeting.passcode || null,
+        hostId: hostId,
+        requestedById: adminIdentity.id,
+        status: MeetingStatus.SCHEDULED,
+        internalAttendantIds: [],
+        emailAttendants: [],
+      });
+    });
+
+    const savedMeetings = await this.meetingRepository.save(meetingsToCreate);
+    this.logger.debug(`Successfully created ${savedMeetings.length} new meetings`);
+  }
 }
+
 
