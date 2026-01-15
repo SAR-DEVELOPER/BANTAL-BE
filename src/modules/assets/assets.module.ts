@@ -10,8 +10,8 @@ import { AssetType } from './core/entities/asset-type.entity';
 import { MasterCompanyList } from 'src/entities/master-company-list.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Asset, Office, Room, AssetGroup, AssetType, MasterCompanyList])],
-  providers: [AssetsService],
-  controllers: [AssetsController],
+    imports: [TypeOrmModule.forFeature([Asset, Office, Room, AssetGroup, AssetType, MasterCompanyList])],
+    providers: [AssetsService],
+    controllers: [AssetsController],
 })
-export class AssetsModule {}
+export class AssetsModule { }
