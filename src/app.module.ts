@@ -18,6 +18,7 @@ import { ClientModule } from './modules/client/client.module';
 import { PaymentModule } from './modules/payment/payment.module';
 import { SuratTugasModule } from './modules/surat-tugas/surat-tugas.module';
 import { MeetingModule } from './modules/meeting/meeting.module';
+import { AssetsModule } from './modules/assets/assets.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { MeetingModule } from './modules/meeting/meeting.module';
     PaymentModule,
     SuratTugasModule,
     MeetingModule,
+    AssetsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

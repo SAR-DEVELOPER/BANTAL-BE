@@ -8,13 +8,13 @@ services:
     environment:
       # Admin
       KEYCLOAK_ADMIN: keycloak_admin
-      KEYCLOAK_ADMIN_PASSWORD: JalanCipunagara25!
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
 
       # Database
       KC_DB: postgres
       KC_DB_URL: jdbc:postgresql://keycloak-postgres:5432/keycloak_db
       KC_DB_USERNAME: keycloak_db_user
-      KC_DB_PASSWORD: JalanCipunagara25!
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
 
       # Modern hostname config (no legacy proxy!)
       KC_HOSTNAME: https://auth.centri.id
@@ -39,7 +39,7 @@ services:
     #   - "5433:5432"  # Removed for security - use docker exec or PgAdmin to access
     environment:
       POSTGRES_USER: keycloak_db_user
-      POSTGRES_PASSWORD: JalanCipunagara25!
+      POSTGRES_PASSWORD: ${KEYCLOAK_POSTGRES_PASSWORD}
       POSTGRES_DB: keycloak_db
     volumes:
       - keycloak-postgres-data:/var/lib/postgresql/data
@@ -59,7 +59,7 @@ services:
       - "5434:5432"  # Removed for security - use docker exec or PgAdmin to access
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: JalanCipunagara25!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: bantal_db
     volumes:
       - postgres-data:/var/lib/postgresql/data
@@ -84,12 +84,51 @@ services:
       retries: 5
     environment:
       - MONGO_INITDB_ROOT_USERNAME=mongo_admin
-      - MONGO_INITDB_ROOT_PASSWORD=JalanCipunagara25!
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
     volumes:
       - mongo-data:/data/db
     networks:
       - backend-network
     restart: unless-stopped
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+    ports:
+      - "9100:9000"  # MinIO API
+      - "9101:9001"  # MinIO Console
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - backend-network
+    restart: unless-stopped
+
+  minio-init:
+    build:
+      context: ./minio-init
+      dockerfile: Dockerfile
+    container_name: minio-init
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_BACKEND_USER=${MINIO_BACKEND_USER}
+      - MINIO_BACKEND_PASSWORD=${MINIO_BACKEND_PASSWORD}
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - backend-network
+    restart: "no"
+
   n8n:
     image: n8nio/n8n:latest
     container_name: n8n
@@ -133,7 +172,7 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_USERNAME=postgres
-      - DB_PASSWORD=JalanCipunagara25!
+      - DB_PASSWORD=${DB_PASSWORD}
       - DB_DATABASE=bantal_db
       # MongoDB
       - MONGODB_URI=mongodb://mongo:27017
@@ -147,6 +186,12 @@ services:
       # n8n Basic Auth (optional - only needed if N8N_BASIC_AUTH_ACTIVE=true)
       # - N8N_BASIC_AUTH_USER=your_username
       # - N8N_BASIC_AUTH_PASSWORD=your_password
+      # MinIO Configuration
+      - MINIO_ENDPOINT=minio
+      - MINIO_PORT=9000
+      - MINIO_USE_SSL=false
+      - MINIO_ACCESS_KEY=${MINIO_BACKEND_USER}
+      - MINIO_SECRET_KEY=${MINIO_BACKEND_PASSWORD}
       # CORS Configuration
       - CORS_ORIGINS=https://web.centri.id,https://www.web.centri.id
       # Frontend URLs
@@ -163,6 +208,8 @@ services:
       - postgres
       - mongo
       - keycloak
+      - minio
+      - minio-init
     networks:
       - backend-network
     restart: unless-stopped
@@ -173,6 +220,8 @@ volumes:
   postgres-data:
     driver: local
   mongo-data:
+    driver: local
+  minio-data:
     driver: local
   n8n-data:
     driver: local
