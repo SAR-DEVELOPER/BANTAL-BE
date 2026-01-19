@@ -19,6 +19,7 @@ import { PaymentModule } from './modules/payment/payment.module';
 import { SuratTugasModule } from './modules/surat-tugas/surat-tugas.module';
 import { MeetingModule } from './modules/meeting/meeting.module';
 import { AssetsModule } from './modules/assets/assets.module';
+import { MinioModule } from './modules/minio/minio.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AssetsModule } from './modules/assets/assets.module';
     }),
     TypeOrmModule.forRoot(databaseConfig),
     MongoDBModule,
+    MinioModule,
     AuthModule,
     DocumentModule,
     DivisionModule,

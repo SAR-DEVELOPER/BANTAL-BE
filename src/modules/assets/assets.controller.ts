@@ -17,6 +17,32 @@ export class AssetsController {
         return this.assetsService.healthCheck();
     }
 
+    @Get('health-check/minio')
+    async minioHealthCheck(
+        @Query('keepTestFile') keepTestFile?: string,
+    ): Promise<{
+        status: 'healthy' | 'unhealthy';
+        message: string;
+        details: {
+            connection: boolean;
+            bucketAccess: boolean;
+            uploadCapability: boolean;
+            fileOperations: boolean;
+        };
+        timestamp: Date;
+        testResults?: {
+            uploadedFile?: string;
+            fileUrl?: string;
+            fileSize?: number;
+            uploadTime?: number;
+        };
+        error?: string;
+    }> {
+        console.log('Minio health check requested');
+        const shouldKeepFile = keepTestFile === 'true' || keepTestFile === '1';
+        return this.assetsService.minioHealthCheck(shouldKeepFile);
+    }
+
     @Get('office')
     async getOffice(): Promise<Office[]> {
         return this.assetsService.getOffice();
