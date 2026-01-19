@@ -192,6 +192,8 @@ services:
       - MINIO_USE_SSL=false
       - MINIO_ACCESS_KEY=${MINIO_BACKEND_USER}
       - MINIO_SECRET_KEY=${MINIO_BACKEND_PASSWORD}
+      # MinIO Public URL (for browser access - uses host's external URL)
+      - MINIO_PUBLIC_URL=https://minio.centri.id
       # CORS Configuration
       - CORS_ORIGINS=https://web.centri.id,https://www.web.centri.id
       # Frontend URLs

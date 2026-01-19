@@ -5,7 +5,12 @@ Quick examples you can copy and paste directly into your code.
 ## 1. Basic File Upload in Controller
 
 ```typescript
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioService } from '@modules/minio';
 
@@ -19,7 +24,7 @@ export class YourController {
     const result = await this.minioService.uploadMulterFile(
       'bantal-documents',
       'your-path/',
-      file
+      file,
     );
 
     return {
@@ -50,8 +55,8 @@ export class YourService {
         metadata: {
           'user-id': userId,
           'upload-date': new Date().toISOString(),
-        }
-      }
+        },
+      },
     );
 
     // Save result.url to your database
@@ -66,7 +71,7 @@ export class YourService {
 async uploadInvoice(file: Express.Multer.File, invoiceNumber: string) {
   const year = new Date().getFullYear();
   const month = String(new Date().getMonth() + 1).padStart(2, '0');
-  
+
   const result = await this.minioService.uploadMulterFile(
     'bantal-documents',
     `invoices/${year}/${month}/`,
@@ -424,11 +429,13 @@ async completeUploadFlow(file: Express.Multer.File, userId: string) {
 ## Quick Reference
 
 ### Buckets
+
 - `bantal-documents` - Documents
 - `bantal-assets` - Assets
 - `bantal-uploads` - Temporary uploads
 
 ### Common Paths
+
 - `invoices/YYYY/MM/`
 - `contracts/client-id/`
 - `users/user-id/documents/`
@@ -436,12 +443,15 @@ async completeUploadFlow(file: Express.Multer.File, userId: string) {
 - `temp/`
 
 ### File Size Limits
+
 Set in `@UseInterceptors(FileInterceptor('file', { limits: { fileSize: ... } }))`:
+
 - Documents: 20MB
 - Images: 10MB
 - Archives: 50MB
 
 ### Presigned URL Expiry
+
 - Short: 300 seconds (5 minutes)
 - Medium: 3600 seconds (1 hour)
 - Long: 86400 seconds (24 hours)

@@ -94,19 +94,19 @@ if (healthStatus.status === 'healthy') {
 
 ## Response Fields
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `status` | string | Overall status: `"healthy"` or `"unhealthy"` |
-| `message` | string | Human-readable status message |
-| `details.connection` | boolean | MinIO connection successful |
-| `details.bucketAccess` | boolean | Bucket is accessible |
-| `details.uploadCapability` | boolean | File upload successful |
-| `details.fileOperations` | boolean | File operations (check, delete) successful |
-| `timestamp` | string | ISO timestamp of the check |
-| `testResults.uploadedFile` | string | Path of the test file (if successful) |
-| `testResults.fileSize` | number | Size of test file in bytes |
-| `testResults.uploadTime` | number | Time taken for all tests in milliseconds |
-| `error` | string | Error message (only if unhealthy) |
+| Field                      | Type    | Description                                  |
+| -------------------------- | ------- | -------------------------------------------- |
+| `status`                   | string  | Overall status: `"healthy"` or `"unhealthy"` |
+| `message`                  | string  | Human-readable status message                |
+| `details.connection`       | boolean | MinIO connection successful                  |
+| `details.bucketAccess`     | boolean | Bucket is accessible                         |
+| `details.uploadCapability` | boolean | File upload successful                       |
+| `details.fileOperations`   | boolean | File operations (check, delete) successful   |
+| `timestamp`                | string  | ISO timestamp of the check                   |
+| `testResults.uploadedFile` | string  | Path of the test file (if successful)        |
+| `testResults.fileSize`     | number  | Size of test file in bytes                   |
+| `testResults.uploadTime`   | number  | Time taken for all tests in milliseconds     |
+| `error`                    | string  | Error message (only if unhealthy)            |
 
 ## Test Details
 
@@ -117,7 +117,7 @@ if (healthStatus.status === 'healthy') {
 - **Filename**: `test-{timestamp}.txt`
 - **Content**: `"MinIO health check test file - {ISO timestamp}"`
 - **Content-Type**: `text/plain`
-- **Metadata**: 
+- **Metadata**:
   - `test: "health-check"`
   - `timestamp: "{ISO timestamp}"`
 
@@ -166,7 +166,8 @@ livenessProbe:
 services:
   backend:
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4000/assets/health-check/minio"]
+      test:
+        ['CMD', 'curl', '-f', 'http://localhost:4000/assets/health-check/minio']
       interval: 60s
       timeout: 10s
       retries: 3
@@ -180,6 +181,7 @@ services:
 Check the `details` object to see which specific test failed:
 
 #### Connection Failed
+
 ```json
 {
   "details": {
@@ -192,11 +194,13 @@ Check the `details` object to see which specific test failed:
 ```
 
 **Solution:**
+
 1. Check if MinIO is running: `docker ps | grep minio`
 2. Verify environment variables: `MINIO_ENDPOINT`, `MINIO_PORT`
 3. Check network connectivity between backend and MinIO
 
 #### Bucket Access Failed
+
 ```json
 {
   "details": {
@@ -209,11 +213,13 @@ Check the `details` object to see which specific test failed:
 ```
 
 **Solution:**
+
 1. Verify bucket exists: Check MinIO console at http://localhost:9101
 2. Check bucket permissions
 3. Verify MinIO credentials: `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`
 
 #### Upload Failed
+
 ```json
 {
   "details": {
@@ -226,11 +232,13 @@ Check the `details` object to see which specific test failed:
 ```
 
 **Solution:**
+
 1. Check MinIO storage space
 2. Verify write permissions on bucket
 3. Check MinIO logs: `docker logs minio`
 
 #### File Operations Failed
+
 ```json
 {
   "details": {
@@ -243,6 +251,7 @@ Check the `details` object to see which specific test failed:
 ```
 
 **Solution:**
+
 1. Check file read/delete permissions
 2. Verify bucket policy configuration
 3. Check for eventual consistency issues
@@ -257,6 +266,7 @@ Typical response times (healthy system):
 - **Total Time**: ~100-300ms
 
 If response times are significantly higher:
+
 1. Check network latency
 2. Verify MinIO is not overloaded
 3. Check disk I/O performance
@@ -276,7 +286,9 @@ const minioHealth = new Gauge({
 });
 
 async function updateMetrics() {
-  const response = await fetch('http://localhost:4000/assets/health-check/minio');
+  const response = await fetch(
+    'http://localhost:4000/assets/health-check/minio',
+  );
   const health = await response.json();
   minioHealth.set(health.status === 'healthy' ? 1 : 0);
 }

@@ -34,6 +34,7 @@ MINIO_SECRET_KEY=${MINIO_BACKEND_PASSWORD}
 ## Available Buckets
 
 The following buckets are pre-configured:
+
 - `bantal-assets` - For application assets (images, logos, etc.)
 - `bantal-documents` - For document storage (PDFs, Word docs, etc.)
 - `bantal-uploads` - For temporary or user uploads
@@ -43,7 +44,12 @@ The following buckets are pre-configured:
 ### Basic Usage in Controllers
 
 ```typescript
-import { Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MinioService } from '@modules/minio';
 
@@ -57,7 +63,7 @@ export class UploadController {
     const result = await this.minioService.uploadMulterFile(
       'bantal-documents',
       'invoices/2024/',
-      file
+      file,
     );
 
     return {
@@ -90,8 +96,8 @@ export class DocumentService {
         metadata: {
           'invoice-id': invoiceId,
           'uploaded-by': 'system',
-        }
-      }
+        },
+      },
     );
 
     // Save the URL to your database
@@ -108,7 +114,7 @@ export class DocumentService {
       {
         contentType: 'image/jpeg',
         isPublic: true, // Make publicly accessible
-      }
+      },
     );
 
     return result.url;
@@ -132,7 +138,7 @@ const result = await this.minioService.uploadFile(
       'document-type': 'invoice',
     },
     isPublic: false, // Private file (default)
-  }
+  },
 );
 ```
 
@@ -143,7 +149,7 @@ const result = await this.minioService.uploadFile(
 const temporaryUrl = await this.minioService.getPresignedUrl(
   'bantal-documents',
   'invoices/2024/invoice-001.pdf',
-  3600
+  3600,
 );
 
 // Send this URL to the client for download
@@ -155,7 +161,7 @@ return { downloadUrl: temporaryUrl };
 ```typescript
 await this.minioService.deleteFile(
   'bantal-uploads',
-  'temp/user-123/document.pdf'
+  'temp/user-123/document.pdf',
 );
 ```
 
@@ -164,7 +170,7 @@ await this.minioService.deleteFile(
 ```typescript
 const exists = await this.minioService.fileExists(
   'bantal-documents',
-  'invoices/2024/invoice-001.pdf'
+  'invoices/2024/invoice-001.pdf',
 );
 
 if (!exists) {
@@ -179,10 +185,10 @@ if (!exists) {
 const files = await this.minioService.listFiles(
   'bantal-documents',
   'invoices/2024/', // prefix
-  true // recursive
+  true, // recursive
 );
 
-files.forEach(file => {
+files.forEach((file) => {
   console.log(`File: ${file.name}, Size: ${file.size} bytes`);
 });
 ```
@@ -192,7 +198,7 @@ files.forEach(file => {
 ```typescript
 const metadata = await this.minioService.getFileMetadata(
   'bantal-documents',
-  'invoices/2024/invoice-001.pdf'
+  'invoices/2024/invoice-001.pdf',
 );
 
 console.log('File size:', metadata.size);
@@ -207,6 +213,7 @@ console.log('Content type:', metadata.metaData['content-type']);
 Upload a file to MinIO storage.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name (e.g., 'bantal-documents')
 - `path` (string): Path within bucket (e.g., 'invoices/2024/')
 - `fileName` (string): Name of the file to store
@@ -220,6 +227,7 @@ Upload a file to MinIO storage.
 Upload a Multer file object.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `path` (string): Path within bucket
 - `file` (Express.Multer.File): Multer file object
@@ -232,6 +240,7 @@ Upload a Multer file object.
 Delete a file from storage.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `objectPath` (string): Full object path
 
@@ -242,6 +251,7 @@ Delete a file from storage.
 Generate a temporary access URL.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `objectPath` (string): Object path
 - `expirySeconds` (number): URL expiry time (default: 3600)
@@ -253,6 +263,7 @@ Generate a temporary access URL.
 Check if a file exists.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `objectPath` (string): Object path
 
@@ -263,6 +274,7 @@ Check if a file exists.
 Get file metadata.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `objectPath` (string): Object path
 
@@ -273,6 +285,7 @@ Get file metadata.
 List files in a bucket.
 
 **Parameters:**
+
 - `bucket` (string): Bucket name
 - `prefix` (string): Optional prefix filter
 - `recursive` (boolean): List recursively (default: true)
@@ -285,14 +298,14 @@ List files in a bucket.
 
 ```typescript
 interface MinioUploadResult {
-  url: string;           // Full URL to access the file
-  bucket: string;        // Bucket name
-  objectPath: string;    // Object path within bucket
-  fileName: string;      // Original filename
-  fileSize: number;      // File size in bytes
-  contentType: string;   // MIME type
-  etag: string;          // ETag from MinIO
-  uploadedAt: Date;      // Upload timestamp
+  url: string; // Full URL to access the file
+  bucket: string; // Bucket name
+  objectPath: string; // Object path within bucket
+  fileName: string; // Original filename
+  fileSize: number; // File size in bytes
+  contentType: string; // MIME type
+  etag: string; // ETag from MinIO
+  uploadedAt: Date; // Upload timestamp
 }
 ```
 
@@ -300,20 +313,22 @@ interface MinioUploadResult {
 
 ```typescript
 interface MinioUploadOptions {
-  metadata?: Record<string, string>;  // Custom metadata
-  contentType?: string;                // Content type override
-  isPublic?: boolean;                  // Public access (default: false)
+  metadata?: Record<string, string>; // Custom metadata
+  contentType?: string; // Content type override
+  isPublic?: boolean; // Public access (default: false)
 }
 ```
 
 ## Path Handling
 
 The service automatically normalizes paths:
+
 - Removes leading/trailing slashes
 - Ensures trailing slash for directories
 - Handles empty paths gracefully
 
 **Examples:**
+
 ```typescript
 '/invoices/2024/'  → 'invoices/2024/'
 'invoices/2024'    → 'invoices/2024/'
@@ -325,18 +340,18 @@ The service automatically normalizes paths:
 
 The service automatically detects content types based on file extensions:
 
-| Extension | Content Type |
-|-----------|-------------|
-| pdf | application/pdf |
-| doc | application/msword |
-| docx | application/vnd.openxmlformats-officedocument.wordprocessingml.document |
-| jpg, jpeg | image/jpeg |
-| png | image/png |
-| gif | image/gif |
-| webp | image/webp |
-| zip | application/zip |
-| json | application/json |
-| csv | text/csv |
+| Extension | Content Type                                                            |
+| --------- | ----------------------------------------------------------------------- |
+| pdf       | application/pdf                                                         |
+| doc       | application/msword                                                      |
+| docx      | application/vnd.openxmlformats-officedocument.wordprocessingml.document |
+| jpg, jpeg | image/jpeg                                                              |
+| png       | image/png                                                               |
+| gif       | image/gif                                                               |
+| webp      | image/webp                                                              |
+| zip       | application/zip                                                         |
+| json      | application/json                                                        |
+| csv       | text/csv                                                                |
 
 You can override the detected content type using the `contentType` option.
 
@@ -357,13 +372,15 @@ try {
 ## Best Practices
 
 1. **Use Descriptive Paths**: Organize files with clear directory structures
+
    ```typescript
-   'documents/invoices/2024/01/'
-   'assets/images/products/'
-   'uploads/temp/user-123/'
+   'documents/invoices/2024/01/';
+   'assets/images/products/';
+   'uploads/temp/user-123/';
    ```
 
 2. **Add Metadata**: Include relevant metadata for tracking
+
    ```typescript
    {
      metadata: {
@@ -375,11 +392,13 @@ try {
    ```
 
 3. **Use Presigned URLs**: For secure, temporary access to private files
+
    ```typescript
    const url = await minioService.getPresignedUrl(bucket, path, 3600);
    ```
 
 4. **Clean Up Temp Files**: Delete temporary uploads when no longer needed
+
    ```typescript
    await minioService.deleteFile('bantal-uploads', tempFilePath);
    ```
@@ -399,14 +418,14 @@ If you're currently using MongoDB for file storage, you can migrate to MinIO:
 // Old MongoDB approach
 const mongoDocId = await this.documentService.uploadToMongoDB(
   file.buffer,
-  file.mimetype
+  file.mimetype,
 );
 
 // New MinIO approach
 const result = await this.minioService.uploadMulterFile(
   'bantal-documents',
   'documents/',
-  file
+  file,
 );
 // Store result.url in your database instead of mongoDocId
 ```
@@ -416,6 +435,7 @@ const result = await this.minioService.uploadMulterFile(
 ### Connection Issues
 
 If you see connection errors, verify:
+
 1. MinIO service is running: `docker ps | grep minio`
 2. Environment variables are set correctly
 3. Network connectivity between backend and MinIO
@@ -423,6 +443,7 @@ If you see connection errors, verify:
 ### Bucket Not Found
 
 The service automatically creates buckets if they don't exist. If you see bucket errors:
+
 1. Check MinIO console at http://localhost:9101
 2. Verify bucket permissions
 3. Check MinIO initialization logs
@@ -430,6 +451,7 @@ The service automatically creates buckets if they don't exist. If you see bucket
 ### Upload Failures
 
 Common causes:
+
 1. File size exceeds limits
 2. Invalid file format
 3. Insufficient permissions

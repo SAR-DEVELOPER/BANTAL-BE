@@ -25,8 +25,8 @@ import { MinioService } from './minio.service';
  */
 @Global()
 @Module({
-  imports: [ConfigModule],
-  providers: [MinioService],
-  exports: [MinioService],
+    imports: [ConfigModule],
+    providers: [MinioService],
+    exports: [MinioService],
 })
-export class MinioModule {}
+export class MinioModule { }

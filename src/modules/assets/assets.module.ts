@@ -8,9 +8,16 @@ import { Room } from './core/entities/room.entity';
 import { AssetGroup } from './core/entities/asset-group.entity';
 import { AssetType } from './core/entities/asset-type.entity';
 import { MasterCompanyList } from 'src/entities/master-company-list.entity';
+import { Identity } from '../identity/core/entities/identity.entity';
+import { AuthModule } from '../auth/auth.module';
+import { IdentityModule } from '../identity/identity.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([Asset, Office, Room, AssetGroup, AssetType, MasterCompanyList])],
+    imports: [
+        TypeOrmModule.forFeature([Asset, Office, Room, AssetGroup, AssetType, MasterCompanyList, Identity]),
+        AuthModule,
+        IdentityModule,
+    ],
     providers: [AssetsService],
     controllers: [AssetsController],
 })

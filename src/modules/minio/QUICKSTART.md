@@ -15,9 +15,9 @@ export class YourService {
   async uploadFile(file: Express.Multer.File) {
     // Upload to MinIO
     const result = await this.minioService.uploadMulterFile(
-      'bantal-documents',  // bucket name
-      'invoices/',         // path in bucket
-      file                 // the file
+      'bantal-documents', // bucket name
+      'invoices/', // path in bucket
+      file, // the file
     );
 
     // Use the URL
@@ -50,9 +50,9 @@ export class UploadController {
     const result = await this.minioService.uploadMulterFile(
       'bantal-documents',
       'invoices/2024/',
-      file
+      file,
     );
-    
+
     return { url: result.url };
   }
 }
@@ -69,8 +69,8 @@ const result = await this.minioService.uploadMulterFile(
     metadata: {
       'user-id': '123',
       'document-type': 'contract',
-    }
-  }
+    },
+  },
 );
 ```
 
@@ -84,7 +84,7 @@ const result = await this.minioService.uploadFile(
   'generated/',
   'chart.png',
   imageBuffer,
-  { contentType: 'image/png' }
+  { contentType: 'image/png' },
 );
 ```
 
@@ -95,7 +95,7 @@ const result = await this.minioService.uploadFile(
 const downloadUrl = await this.minioService.getPresignedUrl(
   'bantal-documents',
   'invoices/2024/invoice-001.pdf',
-  3600  // seconds
+  3600, // seconds
 );
 
 // Send to client
@@ -105,10 +105,7 @@ return { downloadUrl };
 ### 5. Delete File
 
 ```typescript
-await this.minioService.deleteFile(
-  'bantal-uploads',
-  'temp/file.pdf'
-);
+await this.minioService.deleteFile('bantal-uploads', 'temp/file.pdf');
 ```
 
 ### 6. Check if File Exists
@@ -116,7 +113,7 @@ await this.minioService.deleteFile(
 ```typescript
 const exists = await this.minioService.fileExists(
   'bantal-documents',
-  'invoices/2024/invoice-001.pdf'
+  'invoices/2024/invoice-001.pdf',
 );
 
 if (!exists) {
@@ -142,14 +139,14 @@ Use clear, organized paths:
 
 ```typescript
 // ✅ Good
-'invoices/2024/01/'
-'contracts/clients/acme-corp/'
-'assets/images/products/'
+'invoices/2024/01/';
+'contracts/clients/acme-corp/';
+'assets/images/products/';
 
 // ❌ Avoid
-'files/'
-'uploads/'
-'temp123/'
+'files/';
+'uploads/';
+'temp123/';
 ```
 
 ## 🎨 Return Value
@@ -158,14 +155,14 @@ All upload methods return:
 
 ```typescript
 {
-  url: string;           // Full URL to access file
-  bucket: string;        // Bucket name
-  objectPath: string;    // Path in bucket
-  fileName: string;      // Original filename
-  fileSize: number;      // Size in bytes
-  contentType: string;   // MIME type
-  etag: string;          // MinIO ETag
-  uploadedAt: Date;      // Upload timestamp
+  url: string; // Full URL to access file
+  bucket: string; // Bucket name
+  objectPath: string; // Path in bucket
+  fileName: string; // Original filename
+  fileSize: number; // Size in bytes
+  contentType: string; // MIME type
+  etag: string; // MinIO ETag
+  uploadedAt: Date; // Upload timestamp
 }
 ```
 
@@ -178,12 +175,15 @@ All upload methods return:
 ## 🐛 Troubleshooting
 
 **Problem:** Connection refused
+
 - **Solution:** Make sure MinIO is running: `docker ps | grep minio`
 
 **Problem:** Access denied
+
 - **Solution:** Check environment variables are set correctly
 
 **Problem:** Bucket not found
+
 - **Solution:** The service creates buckets automatically. Check MinIO console at http://localhost:9101
 
 ## 💡 Tips

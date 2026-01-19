@@ -11,6 +11,7 @@ A comprehensive, production-ready MinIO service has been implemented for the BAN
 A fully-featured MinIO service with the following capabilities:
 
 #### Upload Methods
+
 - ✅ `uploadFile()` - Upload Buffer or Stream with full control
 - ✅ `uploadMulterFile()` - Direct integration with Express Multer
 - ✅ Support for custom metadata
@@ -18,6 +19,7 @@ A fully-featured MinIO service with the following capabilities:
 - ✅ Optional public access configuration
 
 #### File Management
+
 - ✅ `deleteFile()` - Remove files from storage
 - ✅ `fileExists()` - Check file existence
 - ✅ `getFileMetadata()` - Retrieve file information
@@ -25,6 +27,7 @@ A fully-featured MinIO service with the following capabilities:
 - ✅ `getPresignedUrl()` - Generate temporary access URLs
 
 #### Automatic Features
+
 - ✅ Automatic bucket creation if not exists
 - ✅ Path normalization (handles slashes automatically)
 - ✅ Content-type detection from file extensions
@@ -116,7 +119,7 @@ export class MyService {
     const result = await this.minioService.uploadMulterFile(
       'bantal-documents',
       'invoices/2024/',
-      file
+      file,
     );
     return result.url;
   }
@@ -137,7 +140,7 @@ const result = await this.minioService.uploadFile(
       'document-type': 'contract',
     },
     contentType: 'application/pdf',
-  }
+  },
 );
 ```
 
@@ -147,35 +150,43 @@ const result = await this.minioService.uploadFile(
 const url = await this.minioService.getPresignedUrl(
   'bantal-documents',
   'invoices/2024/invoice-001.pdf',
-  3600 // 1 hour
+  3600, // 1 hour
 );
 ```
 
 ## Key Features
 
 ### 1. Global Availability
+
 The service is marked as `@Global()`, making it available in all modules without explicit imports.
 
 ### 2. Type Safety
+
 Full TypeScript support with comprehensive interfaces and type definitions.
 
 ### 3. Error Handling
+
 All methods include try-catch blocks with descriptive error messages and logging.
 
 ### 4. Automatic Path Handling
+
 Paths are automatically normalized:
+
 - `/invoices/2024/` → `invoices/2024/`
 - `invoices/2024` → `invoices/2024/`
 - `invoices//2024/` → `invoices/2024/`
 
 ### 5. Content Type Detection
+
 Automatic MIME type detection for common file types:
+
 - Documents: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX
 - Images: JPG, PNG, GIF, WEBP, SVG
 - Archives: ZIP, RAR, 7Z
 - Others: JSON, XML, CSV, TXT
 
 ### 6. Flexible Upload Options
+
 - Upload from Buffer
 - Upload from Stream
 - Upload from Multer File
@@ -183,6 +194,7 @@ Automatic MIME type detection for common file types:
 - Public/private access control
 
 ### 7. Comprehensive File Management
+
 - Upload files
 - Delete files
 - Check existence
@@ -205,7 +217,7 @@ export class UploadController {
     return await this.minioService.uploadMulterFile(
       'bantal-documents',
       'uploads/',
-      file
+      file,
     );
   }
 }
@@ -223,9 +235,9 @@ export class DocumentService {
       'bantal-documents',
       `documents/${metadata.type}/`,
       file,
-      { metadata }
+      { metadata },
     );
-    
+
     // Save result.url to database
     return result;
   }
@@ -237,20 +249,22 @@ export class DocumentService {
 ### From MongoDB to MinIO
 
 **Before:**
+
 ```typescript
 const mongoDocId = await this.documentService.uploadToMongoDB(
   file.buffer,
-  file.mimetype
+  file.mimetype,
 );
 // Store mongoDocId in database
 ```
 
 **After:**
+
 ```typescript
 const result = await this.minioService.uploadMulterFile(
   'bantal-documents',
   'documents/',
-  file
+  file,
 );
 // Store result.url in database
 ```
@@ -321,12 +335,14 @@ To use the example controller for testing:
 ## Monitoring and Logging
 
 The service includes comprehensive logging:
+
 - Debug logs for operations
 - Error logs with stack traces
 - Success confirmations
 - Warning logs for non-critical issues
 
 Access logs via:
+
 ```bash
 docker logs bantal-backend
 ```
@@ -360,6 +376,7 @@ docker logs bantal-backend
 ### Troubleshooting
 
 **Connection Issues:**
+
 ```bash
 # Check MinIO is running
 docker ps | grep minio
@@ -372,6 +389,7 @@ curl http://localhost:9100/minio/health/live
 ```
 
 **Bucket Issues:**
+
 ```bash
 # Access MinIO console
 open http://localhost:9101
@@ -398,7 +416,7 @@ The MinIO service is fully implemented, tested, and ready for production use. It
 ✅ **Flexible** - Multiple upload methods  
 ✅ **Reliable** - Comprehensive error handling  
 ✅ **Well-Documented** - Extensive documentation and examples  
-✅ **Production-Ready** - Battle-tested patterns and best practices  
+✅ **Production-Ready** - Battle-tested patterns and best practices
 
 ---
 
