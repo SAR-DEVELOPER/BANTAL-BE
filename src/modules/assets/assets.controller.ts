@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Post, Query, Body, UseInterceptors, UploadedFiles, Request, UnauthorizedException, NotFoundException, UseGuards, Res, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Param, Post, Patch, Query, Body, UseInterceptors, UploadedFiles, Request, UnauthorizedException, NotFoundException, UseGuards, Res, StreamableFile } from '@nestjs/common';
 import { Response } from 'express';
 import { EnhancedJwtAuthGuard } from '../auth/guards/enhanced-jwt-auth.guard';
-import { FileFieldsInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { AssetsService } from './assets.service';
 import { Asset } from './core/entities/asset.entity';
+import { AssetHistory } from './core/entities/asset-history.entity';
 import { Office } from './core/entities/office.entity';
 import { Room } from './core/entities/room.entity';
 import { AssetGroup } from './core/entities/asset-group.entity';
@@ -11,6 +12,10 @@ import { AssetType } from './core/entities/asset-type.entity';
 import { CreateAssetDto } from './core/dto/create-asset.dto';
 import { QueryAssetsDto } from './core/dto/query-assets.dto';
 import { PublicAssetDto } from './core/dto/public-asset.dto';
+import { CreateAssetHistoryDto } from './core/dto/create-asset-history.dto';
+import { QueryAssetHistoryDto } from './core/dto/query-asset-history.dto';
+import { UpdateOfficeFloorplanDto } from './core/dto/update-office-floorplan.dto';
+import { UpdateRoomFloorplanDto } from './core/dto/update-room-floorplan.dto';
 
 @Controller('assets')
 export class AssetsController {
@@ -126,6 +131,47 @@ export class AssetsController {
     }
 
     /**
+     * Get office with all rooms (for floorplan editor)
+     * @param officeId - Office UUID
+     * @returns Office with rooms array
+     */
+    @Get('office/:officeId/with-rooms')
+    @UseGuards(EnhancedJwtAuthGuard)
+    async getOfficeWithRooms(@Param('officeId') officeId: string): Promise<Office & { rooms: Room[] }> {
+        return this.assetsService.getOfficeWithRooms(officeId);
+    }
+
+    /**
+     * Update office floorplan data
+     * @param officeId - Office UUID
+     * @param updateDto - Floorplan data
+     * @returns Updated office
+     */
+    @Patch('office/:officeId/floorplan')
+    @UseGuards(EnhancedJwtAuthGuard)
+    async updateOfficeFloorplan(
+        @Param('officeId') officeId: string,
+        @Body() updateDto: UpdateOfficeFloorplanDto,
+    ): Promise<Office> {
+        return this.assetsService.updateOfficeFloorplan(officeId, updateDto);
+    }
+
+    /**
+     * Update room floorplan SVG data
+     * @param roomId - Room UUID
+     * @param updateDto - Room SVG data
+     * @returns Updated room
+     */
+    @Patch('room/:roomId/floorplan')
+    @UseGuards(EnhancedJwtAuthGuard)
+    async updateRoomFloorplan(
+        @Param('roomId') roomId: string,
+        @Body() updateDto: UpdateRoomFloorplanDto,
+    ): Promise<Room> {
+        return this.assetsService.updateRoomFloorplan(roomId, updateDto);
+    }
+
+    /**
      * Get presigned URLs for all asset files
      * Provides secure, time-limited access to asset images and documents
      * 
@@ -224,5 +270,65 @@ export class AssetsController {
         },
     ): Promise<Asset> {
         return this.assetsService.createAssetWithFiles(createAssetDto, files);
+    }
+
+    // ========================================
+    // ASSET HISTORY ENDPOINTS
+    // NOTE: Not connected to frontend yet
+    // ========================================
+
+    /**
+     * Create manual history event
+     * POST /assets/:id/history
+     * NOTE: Not connected yet - for manual maintenance events
+     */
+    @Post(':id/history')
+    @UseInterceptors(FilesInterceptor('documents', 10))
+    async createHistoryEvent(
+        @Param('id') assetId: string,
+        @Body() dto: CreateAssetHistoryDto,
+        @UploadedFiles() files: Express.Multer.File[],
+        @Request() req,
+    ): Promise<AssetHistory> {
+        // Use authenticated user ID, or fall back to approver ID if no user session
+        const userId = req.user?.sub || dto.approvedBy;
+
+        return this.assetsService.createHistoryEvent(
+            assetId,
+            dto,
+            files,
+            userId,
+        );
+    }
+
+    /**
+     * Get asset history with filters
+     * GET /assets/:id/history
+     * NOTE: Not connected yet - for history timeline page
+     */
+    @Get(':id/history')
+    async getAssetHistory(
+        @Param('id') assetId: string,
+        @Query() queryDto: QueryAssetHistoryDto,
+    ): Promise<{
+        data: AssetHistory[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    }> {
+        return this.assetsService.getAssetHistory(assetId, queryDto);
+    }
+
+    /**
+     * Get presigned URLs for history event documents
+     * GET /assets/history/:historyId/documents
+     * NOTE: Not connected yet - for document downloads
+     */
+    @Get('history/:historyId/documents')
+    async getHistoryDocuments(@Param('historyId') historyId: string): Promise<Record<string, string>> {
+        return this.assetsService.getHistoryDocumentUrls(historyId);
     }
 }

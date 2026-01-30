@@ -1,5 +1,6 @@
 import { Injectable, Logger, NotFoundException, UnauthorizedException, StreamableFile } from '@nestjs/common';
 import { Asset } from './core/entities/asset.entity';
+import { AssetHistory } from './core/entities/asset-history.entity';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Office } from './core/entities/office.entity';
@@ -10,6 +11,10 @@ import { MasterCompanyList } from 'src/entities/master-company-list.entity';
 import { CreateAssetDto } from './core/dto/create-asset.dto';
 import { QueryAssetsDto } from './core/dto/query-assets.dto';
 import { PublicAssetDto } from './core/dto/public-asset.dto';
+import { CreateAssetHistoryDto } from './core/dto/create-asset-history.dto';
+import { QueryAssetHistoryDto } from './core/dto/query-asset-history.dto';
+import { UpdateOfficeFloorplanDto } from './core/dto/update-office-floorplan.dto';
+import { UpdateRoomFloorplanDto } from './core/dto/update-room-floorplan.dto';
 import { MinioService } from '@modules/minio';
 
 @Injectable()
@@ -19,6 +24,8 @@ export class AssetsService {
     constructor(
         @InjectRepository(Asset)
         private assetRepository: Repository<Asset>,
+        @InjectRepository(AssetHistory)
+        private assetHistoryRepository: Repository<AssetHistory>,
         @InjectRepository(Office)
         private officeRepository: Repository<Office>,
         @InjectRepository(Room)
@@ -193,6 +200,109 @@ export class AssetsService {
 
     async getAssetTypeByGroup(groupId: string): Promise<AssetType[]> {
         return this.assetTypeRepository.find({ where: { assetGroup: { id: groupId } } });
+    }
+
+    /**
+     * Get office with all its rooms for floorplan editor
+     * @param officeId - Office UUID
+     * @returns Office with rooms array
+     */
+    async getOfficeWithRooms(officeId: string): Promise<Office & { rooms: Room[] }> {
+        this.logger.debug(`Getting office ${officeId} with rooms`);
+
+        const office = await this.officeRepository.findOne({
+            where: { id: officeId },
+        });
+
+        if (!office) {
+            throw new NotFoundException(`Office with ID "${officeId}" not found`);
+        }
+
+        const rooms = await this.roomRepository.find({
+            where: { office: { id: officeId }, isActive: true },
+            order: { roomCode: 'ASC' },
+        });
+
+        return { ...office, rooms };
+    }
+
+    /**
+     * Update office floorplan data
+     * @param officeId - Office UUID
+     * @param updateDto - Floorplan data to update
+     * @returns Updated office
+     */
+    async updateOfficeFloorplan(
+        officeId: string,
+        updateDto: UpdateOfficeFloorplanDto,
+    ): Promise<Office> {
+        this.logger.debug(`Updating floorplan for office ${officeId}`);
+
+        const office = await this.officeRepository.findOne({
+            where: { id: officeId },
+        });
+
+        if (!office) {
+            throw new NotFoundException(`Office with ID "${officeId}" not found`);
+        }
+
+        // Update floorplan fields
+        if (updateDto.floorplanViewbox !== undefined) {
+            office.floorplanViewbox = updateDto.floorplanViewbox;
+        }
+
+        if (updateDto.floorplanOutlineSvg !== undefined) {
+            office.floorplanOutlineSvg = updateDto.floorplanOutlineSvg;
+        }
+
+        const updatedOffice = await this.officeRepository.save(office);
+        this.logger.log(`Floorplan updated for office ${officeId}`);
+
+        return updatedOffice;
+    }
+
+    /**
+     * Update room floorplan SVG data
+     * @param roomId - Room UUID
+     * @param updateDto - Room SVG data to update
+     * @returns Updated room
+     */
+    async updateRoomFloorplan(
+        roomId: string,
+        updateDto: UpdateRoomFloorplanDto,
+    ): Promise<Room> {
+        this.logger.debug(`Updating floorplan for room ${roomId}`);
+
+        const room = await this.roomRepository.findOne({
+            where: { id: roomId },
+            relations: ['office'],
+        });
+
+        if (!room) {
+            throw new NotFoundException(`Room with ID "${roomId}" not found`);
+        }
+
+        // Update SVG fields
+        if (updateDto.svgPath !== undefined) {
+            room.svgPath = updateDto.svgPath;
+        }
+
+        if (updateDto.svgFillColor !== undefined) {
+            room.svgFillColor = updateDto.svgFillColor;
+        }
+
+        if (updateDto.svgLabelX !== undefined) {
+            room.svgLabelX = updateDto.svgLabelX;
+        }
+
+        if (updateDto.svgLabelY !== undefined) {
+            room.svgLabelY = updateDto.svgLabelY;
+        }
+
+        const updatedRoom = await this.roomRepository.save(room);
+        this.logger.log(`Floorplan updated for room ${roomId}`);
+
+        return updatedRoom;
     }
 
     async generatePreviewCode(
@@ -718,5 +828,156 @@ export class AssetsService {
             this.logger.error(`Failed to stream asset image: ${error.message}`, error.stack);
             throw new NotFoundException(`Failed to stream image: ${error.message}`);
         }
+    }
+
+    /**
+     * Create asset history event
+     * NOTE: Not connected yet - will be called from:
+     * 1. Asset creation (for acquisition)
+     * 2. Manual event creation (for maintenance)
+     */
+    async createHistoryEvent(
+        assetId: string,
+        dto: CreateAssetHistoryDto,
+        files: Express.Multer.File[] | undefined,
+        userId: string,
+    ): Promise<AssetHistory> {
+        this.logger.debug(`Creating history event for asset ${assetId}: ${dto.action}`);
+
+        // 1. Validate asset exists
+        const asset = await this.assetRepository.findOne({ 
+            where: { id: assetId } 
+        });
+        if (!asset) {
+            throw new NotFoundException(`Asset ${assetId} not found`);
+        }
+
+        // 2. Upload documents to MinIO if provided
+        let documentKeys: string[] | null = null;
+        if (files && files.length > 0) {
+            documentKeys = [];
+            for (const file of files) {
+                const path = `assets/${assetId}/history/`;
+                const fileName = `${Date.now()}-${file.originalname}`;
+                const result = await this.minioService.uploadFile(
+                    'bantal-assets',
+                    path,
+                    fileName,
+                    file.buffer,
+                    { contentType: file.mimetype }
+                );
+                // Store the full object path
+                documentKeys.push(result.objectPath);
+            }
+            this.logger.debug(`Uploaded ${documentKeys.length} documents for history event`);
+        }
+
+        // 3. Create history record
+        const history = this.assetHistoryRepository.create({
+            asset: { id: assetId } as Asset,
+            action: dto.action,
+            date: new Date(dto.date),
+            description: dto.description,
+            payload: dto.payload,
+            documents: documentKeys,
+            notes: dto.notes,
+            approvedBy: dto.approvedBy,
+            approvedAt: new Date(),
+            createdBy: userId,
+            updatedBy: userId,
+        });
+
+        await this.assetHistoryRepository.save(history);
+        this.logger.log(`Created history event ${history.id} for asset ${assetId}`);
+
+        return history;
+    }
+
+    /**
+     * Get asset history with optional filters
+     * NOTE: Not connected yet - will be called from history timeline page
+     */
+    async getAssetHistory(
+        assetId: string,
+        queryDto: QueryAssetHistoryDto,
+    ): Promise<{
+        data: AssetHistory[];
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+        };
+    }> {
+        this.logger.debug(`Fetching history for asset ${assetId} with filters: ${JSON.stringify(queryDto)}`);
+
+        const { action, startDate, endDate, page = 1, limit = 50 } = queryDto;
+
+        const queryBuilder = this.assetHistoryRepository
+            .createQueryBuilder('history')
+            .where('history.asset_id = :assetId', { assetId })
+            .orderBy('history.date', 'DESC')
+            .skip((page - 1) * limit)
+            .take(limit);
+
+        if (action) {
+            queryBuilder.andWhere('history.action = :action', { action });
+        }
+
+        if (startDate) {
+            queryBuilder.andWhere('history.date >= :startDate', { startDate });
+        }
+
+        if (endDate) {
+            queryBuilder.andWhere('history.date <= :endDate', { endDate });
+        }
+
+        const [data, total] = await queryBuilder.getManyAndCount();
+
+        this.logger.debug(`Found ${total} history events for asset ${assetId}`);
+
+        return {
+            data,
+            meta: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
+        };
+    }
+
+    /**
+     * Get presigned URLs for history event documents
+     * NOTE: Not connected yet - will be called when viewing event details
+     */
+    async getHistoryDocumentUrls(historyId: string): Promise<Record<string, string>> {
+        this.logger.debug(`Generating presigned URLs for history event ${historyId}`);
+
+        const history = await this.assetHistoryRepository.findOne({
+            where: { id: historyId },
+        });
+
+        if (!history) {
+            throw new NotFoundException(`History event ${historyId} not found`);
+        }
+
+        if (!history.documents || history.documents.length === 0) {
+            return {};
+        }
+
+        const urls: Record<string, string> = {};
+        for (const key of history.documents) {
+            const url = await this.minioService.getPresignedUrl(
+                'bantal-assets',
+                key,
+                3600, // 1 hour expiry
+            );
+            urls[key] = url;
+        }
+
+        this.logger.debug(`Generated ${Object.keys(urls).length} presigned URLs`);
+
+        return urls;
     }
 }

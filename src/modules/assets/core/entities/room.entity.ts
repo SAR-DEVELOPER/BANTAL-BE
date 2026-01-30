@@ -19,6 +19,18 @@ export class Room {
   @Column({ name: 'description', type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ name: 'svg_path', type: 'text', nullable: true })
+  svgPath: string | null;
+
+  @Column({ name: 'svg_fill_color', type: 'varchar', length: 50, nullable: true, default: '#e0e0e0' })
+  svgFillColor: string;
+
+  @Column({ name: 'svg_label_x', type: 'float', nullable: true })
+  svgLabelX: number | null;
+
+  @Column({ name: 'svg_label_y', type: 'float', nullable: true })
+  svgLabelY: number | null;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 

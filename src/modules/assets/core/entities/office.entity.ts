@@ -17,6 +17,12 @@ export class Office {
   @Column({ name: 'description', type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ name: 'floorplan_viewbox', type: 'varchar', length: 100, nullable: true })
+  floorplanViewbox: string | null;
+
+  @Column({ name: 'floorplan_outline_svg', type: 'text', nullable: true })
+  floorplanOutlineSvg: string | null;
+
   @Column({ name: 'is_active', type: 'boolean', default: true })
   isActive: boolean;
 
