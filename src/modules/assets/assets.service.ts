@@ -807,7 +807,7 @@ export class AssetsService {
         }
 
         const bucket = 'bantal-assets';
-        
+
         try {
             // Get stream from MinIO
             const { stream, contentType, contentLength } = await this.minioService.getObjectStream(
@@ -845,8 +845,8 @@ export class AssetsService {
         this.logger.debug(`Creating history event for asset ${assetId}: ${dto.action}`);
 
         // 1. Validate asset exists
-        const asset = await this.assetRepository.findOne({ 
-            where: { id: assetId } 
+        const asset = await this.assetRepository.findOne({
+            where: { id: assetId }
         });
         if (!asset) {
             throw new NotFoundException(`Asset ${assetId} not found`);
@@ -889,6 +889,23 @@ export class AssetsService {
 
         await this.assetHistoryRepository.save(history);
         this.logger.log(`Created history event ${history.id} for asset ${assetId}`);
+
+        // If this is an assignment event, update the asset's employee
+        if (dto.action === 'assignment') {
+            try {
+                const payload = typeof dto.payload === 'string' ? JSON.parse(dto.payload) : dto.payload;
+                const newEmployeeId = payload?.assignee?.employeeId;
+                if (newEmployeeId) {
+                    await this.assetRepository.update(assetId, {
+                        employee: { id: newEmployeeId } as any,
+                        updatedBy: userId,
+                    });
+                    this.logger.log(`Updated asset ${assetId} employee to ${newEmployeeId}`);
+                }
+            } catch (err) {
+                this.logger.error(`Failed to update asset employee after assignment: ${err.message}`, err.stack);
+            }
+        }
 
         return history;
     }
