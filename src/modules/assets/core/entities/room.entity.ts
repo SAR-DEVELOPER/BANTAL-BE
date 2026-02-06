@@ -8,7 +8,7 @@ export class Room {
 
   @Column({ name: 'room_code', type: 'varchar', length: 255 })
   roomCode: string;
-  
+
   @ManyToOne(() => Office, { nullable: false })
   @JoinColumn({ name: 'office_id' })
   office: Office;

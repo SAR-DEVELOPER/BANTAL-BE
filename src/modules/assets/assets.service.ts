@@ -907,6 +907,29 @@ export class AssetsService {
             }
         }
 
+        // If this is a relocation event, update the asset's office and room
+        if (dto.action === 'relocation') {
+            try {
+                const payload = typeof dto.payload === 'string' ? JSON.parse(dto.payload) : dto.payload;
+                const toLocation = payload?.toLocation;
+                if (toLocation?.officeId) {
+                    const updateData: any = {
+                        office: { id: toLocation.officeId } as any,
+                        updatedBy: userId,
+                    };
+                    if (toLocation.roomId) {
+                        updateData.room = { id: toLocation.roomId } as any;
+                    } else {
+                        updateData.room = null;
+                    }
+                    await this.assetRepository.update(assetId, updateData);
+                    this.logger.log(`Updated asset ${assetId} location to office ${toLocation.officeId}, room ${toLocation.roomId ?? 'none'}`);
+                }
+            } catch (err) {
+                this.logger.error(`Failed to update asset location after relocation: ${err.message}`, err.stack);
+            }
+        }
+
         return history;
     }
 
